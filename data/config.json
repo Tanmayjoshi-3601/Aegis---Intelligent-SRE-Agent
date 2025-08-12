@@ -1,0 +1,38 @@
+{
+  "training_config": {
+    "data_path": "data/synthetic/training/logs.json",
+    "test_split": 0.2,
+    "anomaly_threshold": 0.7,
+    "models": [
+      "isolation_forest",
+      "lstm_autoencoder"
+    ]
+  },
+  "streaming_config": {
+    "data_path": "data/synthetic/streaming/logs.json",
+    "kafka_topic": "system-logs",
+    "batch_size": 10,
+    "interval_ms": 100
+  },
+  "services": [
+    "api-gateway",
+    "auth-service",
+    "user-service",
+    "payment-service",
+    "inventory-service",
+    "notification-service",
+    "analytics-service",
+    "cache-service",
+    "database-primary",
+    "database-replica"
+  ],
+  "anomaly_types": [
+    "high_cpu",
+    "disk_issue",
+    "high_memory",
+    "network_issue",
+    "connection_pool",
+    "high_error_rate",
+    "high_latency"
+  ]
+}

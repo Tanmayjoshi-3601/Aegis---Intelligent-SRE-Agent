@@ -1,0 +1,232 @@
+[
+  {
+    "id": "pb_001",
+    "issue_type": "high_memory",
+    "title": "High Memory Usage Mitigation",
+    "symptoms": [
+      "memory_usage > 85%",
+      "OutOfMemoryError in logs",
+      "Increasing memory trend over 30 minutes",
+      "Garbage collection frequency increased"
+    ],
+    "root_causes": [
+      "Memory leak in application",
+      "Cache size unbounded",
+      "Large result sets from database",
+      "Thread leak creating objects"
+    ],
+    "mitigation_steps": [
+      {
+        "priority": 1,
+        "action": "restart_service",
+        "description": "Restart the affected service to clear memory",
+        "risk": "low",
+        "expected_result": "Immediate memory reduction"
+      },
+      {
+        "priority": 2,
+        "action": "scale_horizontally",
+        "description": "Add more instances to distribute load",
+        "risk": "low",
+        "expected_result": "Load distribution reduces memory pressure"
+      },
+      {
+        "priority": 3,
+        "action": "clear_cache",
+        "description": "Clear application cache if applicable",
+        "risk": "medium",
+        "expected_result": "Temporary performance impact, memory recovery"
+      }
+    ],
+    "verification": [
+      "Check memory_usage < 70% after 5 minutes",
+      "Verify no OutOfMemoryError in logs",
+      "Confirm garbage collection normalized"
+    ],
+    "preventive_measures": [
+      "Set JVM heap size limits",
+      "Implement cache eviction policies",
+      "Add memory monitoring alerts at 70% threshold"
+    ]
+  },
+  {
+    "id": "pb_002",
+    "issue_type": "high_latency",
+    "title": "High Latency Response Mitigation",
+    "symptoms": [
+      "request_latency_ms > 1000",
+      "Timeout errors increasing",
+      "Queue depth increasing",
+      "User complaints about slow response"
+    ],
+    "root_causes": [
+      "Database slow queries",
+      "Network congestion",
+      "Insufficient compute resources",
+      "External service degradation"
+    ],
+    "mitigation_steps": [
+      {
+        "priority": 1,
+        "action": "enable_circuit_breaker",
+        "description": "Activate circuit breaker for failing dependencies",
+        "risk": "medium",
+        "expected_result": "Fail fast, prevent cascade"
+      },
+      {
+        "priority": 2,
+        "action": "increase_connection_pool",
+        "description": "Increase database connection pool size",
+        "risk": "low",
+        "expected_result": "More concurrent connections available"
+      },
+      {
+        "priority": 3,
+        "action": "enable_cache",
+        "description": "Enable response caching for frequent queries",
+        "risk": "low",
+        "expected_result": "Reduced database load"
+      }
+    ],
+    "verification": [
+      "Check request_latency_ms < 500",
+      "Verify error rate decreased",
+      "Confirm queue depth normalizing"
+    ]
+  },
+  {
+    "id": "pb_003",
+    "issue_type": "connection_pool_exhausted",
+    "title": "Database Connection Pool Exhaustion",
+    "symptoms": [
+      "Connection pool exhausted errors",
+      "active_connections > 900",
+      "Database timeout errors",
+      "Service unable to connect to database"
+    ],
+    "root_causes": [
+      "Connection leak in application",
+      "Sudden traffic spike",
+      "Long-running queries holding connections",
+      "Database performance degradation"
+    ],
+    "mitigation_steps": [
+      {
+        "priority": 1,
+        "action": "kill_long_queries",
+        "description": "Terminate queries running > 60 seconds",
+        "risk": "medium",
+        "expected_result": "Free up held connections"
+      },
+      {
+        "priority": 2,
+        "action": "restart_connection_pool",
+        "description": "Force connection pool restart",
+        "risk": "high",
+        "expected_result": "All connections reset"
+      },
+      {
+        "priority": 3,
+        "action": "scale_database_read_replicas",
+        "description": "Add read replicas to distribute load",
+        "risk": "low",
+        "expected_result": "Read traffic distributed"
+      }
+    ],
+    "verification": [
+      "Check active_connections < 700",
+      "No connection pool errors in last 5 minutes",
+      "Database response time < 100ms"
+    ]
+  },
+  {
+    "id": "pb_004",
+    "issue_type": "cascading_failure",
+    "title": "Cascading Failure Mitigation",
+    "symptoms": [
+      "Multiple services reporting errors",
+      "Error rate > 10% across services",
+      "Dependency chain failures",
+      "System-wide degradation"
+    ],
+    "root_causes": [
+      "Core service failure",
+      "Database unavailable",
+      "Message queue backup",
+      "Network partition"
+    ],
+    "mitigation_steps": [
+      {
+        "priority": 1,
+        "action": "activate_degraded_mode",
+        "description": "Switch to degraded mode with limited features",
+        "risk": "low",
+        "expected_result": "Core functionality preserved"
+      },
+      {
+        "priority": 2,
+        "action": "isolate_failing_service",
+        "description": "Remove failing service from load balancer",
+        "risk": "medium",
+        "expected_result": "Prevent spread of failures"
+      },
+      {
+        "priority": 3,
+        "action": "increase_timeout_limits",
+        "description": "Temporarily increase timeout thresholds",
+        "risk": "low",
+        "expected_result": "Reduce timeout-induced failures"
+      }
+    ],
+    "verification": [
+      "Error rate < 2% across all services",
+      "No new timeout errors",
+      "All critical paths operational"
+    ]
+  },
+  {
+    "id": "pb_005",
+    "issue_type": "high_cpu",
+    "title": "High CPU Usage Mitigation",
+    "symptoms": [
+      "cpu_usage > 85%",
+      "System load average high",
+      "Response time degradation",
+      "Thread pool saturation"
+    ],
+    "root_causes": [
+      "Inefficient algorithm",
+      "Infinite loop",
+      "Excessive logging",
+      "Crypto mining malware"
+    ],
+    "mitigation_steps": [
+      {
+        "priority": 1,
+        "action": "scale_horizontally",
+        "description": "Add more instances immediately",
+        "risk": "low",
+        "expected_result": "Load distributed across instances"
+      },
+      {
+        "priority": 2,
+        "action": "throttle_requests",
+        "description": "Enable rate limiting",
+        "risk": "medium",
+        "expected_result": "Reduced incoming load"
+      },
+      {
+        "priority": 3,
+        "action": "profile_and_optimize",
+        "description": "Run CPU profiler and optimize hot paths",
+        "risk": "low",
+        "expected_result": "Long-term CPU reduction"
+      }
+    ],
+    "verification": [
+      "CPU usage < 70%",
+      "Response times normalized",
+      "No thread pool exhaustion"
+    ]
+  }
+]
