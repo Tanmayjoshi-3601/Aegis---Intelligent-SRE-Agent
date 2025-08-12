@@ -2,11 +2,12 @@
   "training_config": {
     "data_path": "data/synthetic/training/logs.json",
     "test_split": 0.2,
-    "anomaly_threshold": 0.7,
+    "anomaly_threshold": 0.5,
     "models": [
       "isolation_forest",
       "lstm_autoencoder"
-    ]
+    ],
+    "class_balance": "50:50"
   },
   "streaming_config": {
     "data_path": "data/synthetic/streaming/logs.json",
@@ -28,11 +29,11 @@
   ],
   "anomaly_types": [
     "high_cpu",
+    "high_latency",
     "disk_issue",
-    "high_memory",
     "network_issue",
     "connection_pool",
     "high_error_rate",
-    "high_latency"
+    "high_memory"
   ]
 }

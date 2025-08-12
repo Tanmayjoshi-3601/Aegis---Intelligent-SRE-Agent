@@ -1,37 +1,61 @@
 {
-  "total_logs": 6793,
-  "normal_logs": 4933,
-  "anomaly_logs": 1860,
+  "total_logs": 7000,
+  "normal_logs": 3500,
+  "anomaly_logs": 3500,
+  "balance_ratio": "50:50",
+  "anomaly_percentage": 50.0,
   "services": [
-    "cache-service",
-    "database-primary",
-    "api-gateway",
     "user-service",
+    "api-gateway",
     "auth-service",
-    "database-replica",
-    "notification-service",
-    "inventory-service",
+    "cache-service",
+    "analytics-service",
+    "database-primary",
     "payment-service",
-    "analytics-service"
+    "inventory-service",
+    "notification-service",
+    "database-replica"
   ],
   "anomaly_types": [
     "high_cpu",
+    "high_latency",
     "disk_issue",
-    "high_memory",
     "network_issue",
     "connection_pool",
     "high_error_rate",
-    "high_latency"
+    "high_memory"
   ],
+  "anomaly_distribution": {
+    "high_cpu": 500,
+    "high_memory": 500,
+    "high_latency": 500,
+    "high_error_rate": 500,
+    "disk_issue": 500,
+    "network_issue": 500,
+    "connection_pool": 500
+  },
   "time_range": {
-    "start": "2025-08-05T17:09:17.738538",
-    "end": "2025-08-12T12:27:17.738538"
+    "start": "2025-08-05T18:08:43.135243",
+    "end": "2025-08-15T11:27:43.135243"
   },
   "log_levels": {
-    "DEBUG": 1005,
-    "INFO": 3445,
-    "WARNING": 1058,
-    "ERROR": 876,
-    "CRITICAL": 409
+    "DEBUG": 336,
+    "INFO": 2465,
+    "WARNING": 1757,
+    "ERROR": 1745,
+    "CRITICAL": 697
+  },
+  "ml_task": {
+    "primary": "binary_classification",
+    "description": "Detect if log entry is anomalous or normal",
+    "secondary": "multi_class_classification",
+    "secondary_description": "If anomaly detected, classify the type",
+    "features": [
+      "metrics",
+      "service",
+      "message patterns"
+    ],
+    "target": "anomaly (boolean) and anomaly_type (categorical)",
+    "class_balance": "Perfectly balanced - 3,500 normal : 3,500 anomalies"
   }
 }

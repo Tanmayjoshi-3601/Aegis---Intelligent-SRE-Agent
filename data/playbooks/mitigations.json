@@ -96,7 +96,7 @@
   },
   {
     "id": "pb_003",
-    "issue_type": "connection_pool_exhausted",
+    "issue_type": "connection_pool",
     "title": "Database Connection Pool Exhaustion",
     "symptoms": [
       "Connection pool exhausted errors",
@@ -227,6 +227,141 @@
       "CPU usage < 70%",
       "Response times normalized",
       "No thread pool exhaustion"
+    ]
+  },
+  {
+    "id": "pb_006",
+    "issue_type": "high_error_rate",
+    "title": "High Error Rate Mitigation",
+    "symptoms": [
+      "error_rate > 10%",
+      "Multiple 4xx/5xx responses",
+      "User complaints increasing",
+      "Service degradation"
+    ],
+    "root_causes": [
+      "Bad deployment",
+      "Configuration error",
+      "External dependency failure",
+      "Database issues"
+    ],
+    "mitigation_steps": [
+      {
+        "priority": 1,
+        "action": "rollback_deployment",
+        "description": "Revert to previous stable version",
+        "risk": "low",
+        "expected_result": "Immediate error reduction"
+      },
+      {
+        "priority": 2,
+        "action": "enable_circuit_breaker",
+        "description": "Prevent cascading failures",
+        "risk": "low",
+        "expected_result": "Isolated failure impact"
+      },
+      {
+        "priority": 3,
+        "action": "increase_retries",
+        "description": "Add retry logic with exponential backoff",
+        "risk": "medium",
+        "expected_result": "Transient errors handled"
+      }
+    ],
+    "verification": [
+      "Error rate < 1%",
+      "Service health checks passing",
+      "No user complaints in last 10 minutes"
+    ]
+  },
+  {
+    "id": "pb_007",
+    "issue_type": "disk_issue",
+    "title": "Disk Space Critical Mitigation",
+    "symptoms": [
+      "disk_usage > 90%",
+      "Write failures in logs",
+      "Database unable to write",
+      "Log rotation failing"
+    ],
+    "root_causes": [
+      "Log files not rotating",
+      "Large temporary files",
+      "Database growth unchecked",
+      "Backup files accumulating"
+    ],
+    "mitigation_steps": [
+      {
+        "priority": 1,
+        "action": "clean_temp_files",
+        "description": "Remove temporary and cache files",
+        "risk": "low",
+        "expected_result": "Immediate disk space recovery"
+      },
+      {
+        "priority": 2,
+        "action": "force_log_rotation",
+        "description": "Rotate and compress old logs",
+        "risk": "low",
+        "expected_result": "Free up log directory space"
+      },
+      {
+        "priority": 3,
+        "action": "archive_old_data",
+        "description": "Move old data to archive storage",
+        "risk": "medium",
+        "expected_result": "Long-term space management"
+      }
+    ],
+    "verification": [
+      "Disk usage < 80%",
+      "No write failures in logs",
+      "Database writes successful"
+    ]
+  },
+  {
+    "id": "pb_008",
+    "issue_type": "network_issue",
+    "title": "Network Degradation Mitigation",
+    "symptoms": [
+      "network_in_mbps < 10",
+      "network_out_mbps < 10",
+      "Connection timeouts",
+      "Packet loss detected"
+    ],
+    "root_causes": [
+      "Network congestion",
+      "DDoS attack",
+      "Routing issues",
+      "Hardware failure"
+    ],
+    "mitigation_steps": [
+      {
+        "priority": 1,
+        "action": "enable_cdn",
+        "description": "Activate CDN for static content",
+        "risk": "low",
+        "expected_result": "Reduced origin traffic"
+      },
+      {
+        "priority": 2,
+        "action": "switch_to_backup_network",
+        "description": "Route traffic through backup connection",
+        "risk": "medium",
+        "expected_result": "Alternative network path"
+      },
+      {
+        "priority": 3,
+        "action": "enable_compression",
+        "description": "Enable gzip compression for responses",
+        "risk": "low",
+        "expected_result": "Reduced bandwidth usage"
+      }
+    ],
+    "verification": [
+      "Network throughput normalized",
+      "No connection timeouts",
+      "Packet loss < 0.1%"
     ]
   }
 ]

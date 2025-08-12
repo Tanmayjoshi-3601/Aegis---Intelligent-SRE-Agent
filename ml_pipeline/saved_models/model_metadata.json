@@ -1,0 +1,49 @@
+{
+  "model_type": "Random Forest",
+  "feature_names": [
+    "cpu_usage",
+    "memory_usage",
+    "disk_usage",
+    "network_in_mbps",
+    "network_out_mbps",
+    "active_connections",
+    "request_latency_ms",
+    "requests_per_second",
+    "error_rate",
+    "service_encoded",
+    "level_encoded",
+    "hour",
+    "day_of_week",
+    "is_weekend",
+    "cpu_memory_product",
+    "system_load",
+    "network_imbalance",
+    "latency_to_rps_ratio",
+    "has_user_id",
+    "has_transaction_id",
+    "high_cpu_flag",
+    "high_memory_flag",
+    "high_error_flag"
+  ],
+  "n_features": 23,
+  "training_date": "2025-08-12T18:38:04.421193",
+  "performance": {
+    "accuracy": 1.0,
+    "f1_score": 1.0,
+    "training_samples": 5600,
+    "test_samples": 1400
+  },
+  "services": [
+    "analytics-service",
+    "api-gateway",
+    "auth-service",
+    "cache-service",
+    "database-primary",
+    "database-replica",
+    "inventory-service",
+    "notification-service",
+    "payment-service",
+    "user-service"
+  ],
+  "threshold": 0.5
+}

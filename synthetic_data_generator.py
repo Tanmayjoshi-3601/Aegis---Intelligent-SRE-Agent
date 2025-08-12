@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-SRE Agent MVP - Synthetic Data Generator
-=========================================
+SRE Agent MVP - Synthetic Data Generator (Balanced Version)
+============================================================
 Generates two datasets:
-1. Training Dataset: 7,000 logs for ML model training
+1. Training Dataset: 7,000 logs (3,500 normal + 3,500 anomalies) for ML model training
 2. Streaming Dataset: 3,000 logs for real-time Kafka testing
 
 Author: SRE Agent Team
@@ -218,6 +218,12 @@ def generate_normal_message(service: str, level: str) -> str:
             f"Slow query detected: {random.randint(500, 1000)}ms",
             f"Memory usage above 70%: monitoring",
             f"Retry attempt 1 of 3"
+        ],
+        "ERROR": [
+            f"Failed login attempt for user",
+            f"Invalid request format",
+            f"Resource not found: 404",
+            f"Validation error in request"
         ]
     }
     return random.choice(messages.get(level, ["Standard log message"]))
@@ -353,64 +359,44 @@ def generate_ddos_scenario(base_time: datetime, start_offset: int) -> List[Dict]
 # ============================================
 
 def generate_training_dataset() -> Dict[str, Any]:
-    """Generate 7,000 logs for ML training"""
-    print("Generating training dataset (7,000 logs)...")
+    """Generate 7,000 logs for ML training - BALANCED 50/50 split"""
+    print("Generating training dataset (7,000 logs - balanced)...")
     
     logs = []
     base_time = datetime.now() - timedelta(days=7)
     
-    # Generate normal logs (70% = 4,900 logs)
-    print("  - Generating 4,900 normal logs...")
-    for i in range(4900):
+    # Generate normal logs (50% = 3,500 logs)
+    print("  - Generating 3,500 normal logs...")
+    for i in range(3500):
         logs.append(generate_log_entry(
             timestamp=generate_timestamp(base_time, i * 2),
             service=random.choice(SERVICES),
             level=random.choices(
-                ["DEBUG", "INFO", "WARNING"],
-                weights=[0.2, 0.7, 0.1]
+                ["DEBUG", "INFO", "WARNING", "ERROR"],
+                weights=[0.1, 0.6, 0.2, 0.1]  # Even normal ops have some ERRORs
             )[0],
             is_anomaly=False
         ))
     
-    # Generate known anomalies (20% = 1,400 logs)
-    print("  - Generating 1,400 anomaly logs...")
+    # Generate anomalies (50% = 3,500 logs)
+    print("  - Generating 3,500 anomaly logs...")
     anomaly_types = ["high_cpu", "high_memory", "high_latency", 
                      "high_error_rate", "disk_issue", "network_issue", 
                      "connection_pool"]
     
-    for i in range(1400):
-        logs.append(generate_log_entry(
-            timestamp=generate_timestamp(base_time, 5000 + i * 2),
-            service=random.choice(SERVICES),
-            level=random.choices(
-                ["WARNING", "ERROR", "CRITICAL"],
-                weights=[0.3, 0.5, 0.2]
-            )[0],
-            is_anomaly=True,
-            anomaly_type=random.choice(anomaly_types)
-        ))
-    
-    # Generate edge cases (10% = 700 logs)
-    print("  - Generating 700 edge case logs...")
-    offset = 7500
-    
-    # Add cascading failures
-    for _ in range(5):
-        cascade_logs = generate_cascading_failure_scenario(base_time, offset)
-        logs.extend(cascade_logs)
-        offset += 100
-    
-    # Add memory leak scenarios
-    for _ in range(3):
-        memleak_logs = generate_memory_leak_scenario(base_time, offset)
-        logs.extend(memleak_logs)
-        offset += 100
-    
-    # Add remaining as DDoS
-    remaining = 700 - (len(logs) - 6300)
-    if remaining > 0:
-        ddos_logs = generate_ddos_scenario(base_time, offset)[:remaining]
-        logs.extend(ddos_logs)
+    # Distribute anomaly types evenly (500 each type)
+    for anomaly_type in anomaly_types:
+        for i in range(500):
+            logs.append(generate_log_entry(
+                timestamp=generate_timestamp(base_time, 7000 + len(logs)),
+                service=random.choice(SERVICES),
+                level=random.choices(
+                    ["INFO", "WARNING", "ERROR", "CRITICAL"],
+                    weights=[0.1, 0.3, 0.4, 0.2]  # Anomalies can be any level
+                )[0],
+                is_anomaly=True,
+                anomaly_type=anomaly_type
+            ))
     
     # Shuffle to mix timestamps
     random.shuffle(logs)
@@ -418,13 +404,21 @@ def generate_training_dataset() -> Dict[str, Any]:
     # Sort by timestamp for realistic ordering
     logs.sort(key=lambda x: x["timestamp"])
     
-    # Generate metadata
+    # Generate metadata with clear anomaly distribution
+    anomaly_distribution = {}
+    for log in logs:
+        if log.get("anomaly_type"):
+            anomaly_distribution[log["anomaly_type"]] = anomaly_distribution.get(log["anomaly_type"], 0) + 1
+    
     metadata = {
         "total_logs": len(logs),
         "normal_logs": sum(1 for log in logs if not log["anomaly"]),
         "anomaly_logs": sum(1 for log in logs if log["anomaly"]),
+        "balance_ratio": "50:50",
+        "anomaly_percentage": round(sum(1 for log in logs if log["anomaly"]) / len(logs) * 100, 2),
         "services": list(set(log["service"] for log in logs)),
         "anomaly_types": list(set(log.get("anomaly_type", "") for log in logs if log.get("anomaly_type"))),
+        "anomaly_distribution": anomaly_distribution,
         "time_range": {
             "start": logs[0]["timestamp"],
             "end": logs[-1]["timestamp"]
@@ -432,6 +426,15 @@ def generate_training_dataset() -> Dict[str, Any]:
         "log_levels": {
             level: sum(1 for log in logs if log["level"] == level)
             for level in LOG_LEVELS
+        },
+        "ml_task": {
+            "primary": "binary_classification",
+            "description": "Detect if log entry is anomalous or normal",
+            "secondary": "multi_class_classification", 
+            "secondary_description": "If anomaly detected, classify the type",
+            "features": ["metrics", "service", "message patterns"],
+            "target": "anomaly (boolean) and anomaly_type (categorical)",
+            "class_balance": "Perfectly balanced - 3,500 normal : 3,500 anomalies"
         }
     }
     
@@ -642,7 +645,7 @@ def generate_mitigation_playbooks():
         },
         {
             "id": "pb_003",
-            "issue_type": "connection_pool_exhausted",
+            "issue_type": "connection_pool",
             "title": "Database Connection Pool Exhaustion",
             "symptoms": [
                 "Connection pool exhausted errors",
@@ -774,6 +777,141 @@ def generate_mitigation_playbooks():
                 "Response times normalized",
                 "No thread pool exhaustion"
             ]
+        },
+        {
+            "id": "pb_006",
+            "issue_type": "high_error_rate",
+            "title": "High Error Rate Mitigation",
+            "symptoms": [
+                "error_rate > 10%",
+                "Multiple 4xx/5xx responses",
+                "User complaints increasing",
+                "Service degradation"
+            ],
+            "root_causes": [
+                "Bad deployment",
+                "Configuration error",
+                "External dependency failure",
+                "Database issues"
+            ],
+            "mitigation_steps": [
+                {
+                    "priority": 1,
+                    "action": "rollback_deployment",
+                    "description": "Revert to previous stable version",
+                    "risk": "low",
+                    "expected_result": "Immediate error reduction"
+                },
+                {
+                    "priority": 2,
+                    "action": "enable_circuit_breaker",
+                    "description": "Prevent cascading failures",
+                    "risk": "low",
+                    "expected_result": "Isolated failure impact"
+                },
+                {
+                    "priority": 3,
+                    "action": "increase_retries",
+                    "description": "Add retry logic with exponential backoff",
+                    "risk": "medium",
+                    "expected_result": "Transient errors handled"
+                }
+            ],
+            "verification": [
+                "Error rate < 1%",
+                "Service health checks passing",
+                "No user complaints in last 10 minutes"
+            ]
+        },
+        {
+            "id": "pb_007",
+            "issue_type": "disk_issue",
+            "title": "Disk Space Critical Mitigation",
+            "symptoms": [
+                "disk_usage > 90%",
+                "Write failures in logs",
+                "Database unable to write",
+                "Log rotation failing"
+            ],
+            "root_causes": [
+                "Log files not rotating",
+                "Large temporary files",
+                "Database growth unchecked",
+                "Backup files accumulating"
+            ],
+            "mitigation_steps": [
+                {
+                    "priority": 1,
+                    "action": "clean_temp_files",
+                    "description": "Remove temporary and cache files",
+                    "risk": "low",
+                    "expected_result": "Immediate disk space recovery"
+                },
+                {
+                    "priority": 2,
+                    "action": "force_log_rotation",
+                    "description": "Rotate and compress old logs",
+                    "risk": "low",
+                    "expected_result": "Free up log directory space"
+                },
+                {
+                    "priority": 3,
+                    "action": "archive_old_data",
+                    "description": "Move old data to archive storage",
+                    "risk": "medium",
+                    "expected_result": "Long-term space management"
+                }
+            ],
+            "verification": [
+                "Disk usage < 80%",
+                "No write failures in logs",
+                "Database writes successful"
+            ]
+        },
+        {
+            "id": "pb_008",
+            "issue_type": "network_issue",
+            "title": "Network Degradation Mitigation",
+            "symptoms": [
+                "network_in_mbps < 10",
+                "network_out_mbps < 10",
+                "Connection timeouts",
+                "Packet loss detected"
+            ],
+            "root_causes": [
+                "Network congestion",
+                "DDoS attack",
+                "Routing issues",
+                "Hardware failure"
+            ],
+            "mitigation_steps": [
+                {
+                    "priority": 1,
+                    "action": "enable_cdn",
+                    "description": "Activate CDN for static content",
+                    "risk": "low",
+                    "expected_result": "Reduced origin traffic"
+                },
+                {
+                    "priority": 2,
+                    "action": "switch_to_backup_network",
+                    "description": "Route traffic through backup connection",
+                    "risk": "medium",
+                    "expected_result": "Alternative network path"
+                },
+                {
+                    "priority": 3,
+                    "action": "enable_compression",
+                    "description": "Enable gzip compression for responses",
+                    "risk": "low",
+                    "expected_result": "Reduced bandwidth usage"
+                }
+            ],
+            "verification": [
+                "Network throughput normalized",
+                "No connection timeouts",
+                "Packet loss < 0.1%"
+            ]
         }
     ]
     
@@ -801,8 +939,9 @@ def main():
         json.dump(training_data["metadata"], f, indent=2)
     
     print(f"✅ Training dataset saved: {len(training_data['logs'])} logs")
-    print(f"   - Normal: {training_data['metadata']['normal_logs']}")
-    print(f"   - Anomalies: {training_data['metadata']['anomaly_logs']}")
+    print(f"   - Normal: {training_data['metadata']['normal_logs']} (50%)")
+    print(f"   - Anomalies: {training_data['metadata']['anomaly_logs']} (50%)")
+    print(f"   - Each anomaly type: 500 samples")
     
     # Generate streaming dataset
     streaming_data = generate_streaming_dataset()
@@ -832,8 +971,9 @@ def main():
         "training_config": {
             "data_path": "data/synthetic/training/logs.json",
             "test_split": 0.2,
-            "anomaly_threshold": 0.7,
-            "models": ["isolation_forest", "lstm_autoencoder"]
+            "anomaly_threshold": 0.5,  # Updated for balanced dataset
+            "models": ["isolation_forest", "lstm_autoencoder"],
+            "class_balance": "50:50"
         },
         "streaming_config": {
             "data_path": "data/synthetic/streaming/logs.json",
@@ -857,10 +997,12 @@ def main():
     print("\n" + "="*60)
     print("Data generation complete! Summary:")
     print("="*60)
-    print(f"📁 Training Dataset:")
+    print(f"📁 Training Dataset (BALANCED):")
     print(f"   - Location: data/synthetic/training/")
     print(f"   - Total logs: {len(training_data['logs'])}")
-    print(f"   - Anomaly rate: {(training_data['metadata']['anomaly_logs']/len(training_data['logs'])*100):.1f}%")
+    print(f"   - Normal: 3,500 (50%)")
+    print(f"   - Anomalies: 3,500 (50%)")
+    print(f"   - Anomaly types: 7 types × 500 samples each")
     
     print(f"\n📁 Streaming Dataset:")
     print(f"   - Location: data/synthetic/streaming/")
@@ -871,6 +1013,7 @@ def main():
     print(f"\n📁 Mitigation Playbooks:")
     print(f"   - Location: data/playbooks/")
     print(f"   - Total playbooks: {len(playbooks)}")
+    print(f"   - Coverage: All 7 anomaly types + network issues")
     
     print("\n" + "="*60)
     print("Next steps:")

@@ -1,157 +1,157 @@
 {
-  "total_logs": 2728,
-  "normal_logs": 1245,
-  "anomaly_logs": 1483,
+  "total_logs": 2681,
+  "normal_logs": 1253,
+  "anomaly_logs": 1428,
   "scenarios": [
     {
       "type": "cascading_failure",
-      "id": "cascade_0f1e2d45",
-      "log_count": 30,
-      "start_time": "2025-08-12T17:09:17.944835",
-      "end_time": "2025-08-12T17:28:17.944835"
+      "id": "cascade_69f7e1cf",
+      "log_count": 25,
+      "start_time": "2025-08-12T18:08:43.343791",
+      "end_time": "2025-08-12T18:27:43.343791"
     },
     {
       "type": "cascading_failure",
-      "id": "cascade_8fad1691",
-      "log_count": 34,
-      "start_time": "2025-08-12T17:39:17.944835",
-      "end_time": "2025-08-12T17:58:17.944835"
+      "id": "cascade_29a46cbd",
+      "log_count": 35,
+      "start_time": "2025-08-12T18:38:43.343791",
+      "end_time": "2025-08-12T18:57:43.343791"
     },
     {
       "type": "cascading_failure",
-      "id": "cascade_9076bc34",
-      "log_count": 26,
-      "start_time": "2025-08-12T18:09:17.944835",
-      "end_time": "2025-08-12T18:28:17.944835"
-    },
-    {
-      "type": "cascading_failure",
-      "id": "cascade_e54ead1c",
-      "log_count": 33,
-      "start_time": "2025-08-12T18:39:17.944835",
-      "end_time": "2025-08-12T18:58:17.944835"
-    },
-    {
-      "type": "cascading_failure",
-      "id": "cascade_6349432a",
-      "log_count": 30,
-      "start_time": "2025-08-12T19:09:17.944835",
-      "end_time": "2025-08-12T19:28:17.944835"
-    },
-    {
-      "type": "cascading_failure",
-      "id": "cascade_feed77a4",
+      "id": "cascade_27ad22c2",
       "log_count": 31,
-      "start_time": "2025-08-12T19:39:17.944835",
-      "end_time": "2025-08-12T19:58:17.944835"
+      "start_time": "2025-08-12T19:08:43.343791",
+      "end_time": "2025-08-12T19:27:43.343791"
     },
     {
       "type": "cascading_failure",
-      "id": "cascade_8d7f05e5",
-      "log_count": 33,
-      "start_time": "2025-08-12T20:09:17.944835",
-      "end_time": "2025-08-12T20:28:17.944835"
-    },
-    {
-      "type": "cascading_failure",
-      "id": "cascade_6f879f2e",
-      "log_count": 33,
-      "start_time": "2025-08-12T20:39:17.944835",
-      "end_time": "2025-08-12T20:58:17.944835"
-    },
-    {
-      "type": "cascading_failure",
-      "id": "cascade_a35bb8b9",
+      "id": "cascade_42251c3b",
       "log_count": 32,
-      "start_time": "2025-08-12T21:09:17.944835",
-      "end_time": "2025-08-12T21:28:17.944835"
+      "start_time": "2025-08-12T19:38:43.343791",
+      "end_time": "2025-08-12T19:57:43.343791"
     },
     {
       "type": "cascading_failure",
-      "id": "cascade_18898cd0",
-      "log_count": 27,
-      "start_time": "2025-08-12T21:39:17.944835",
-      "end_time": "2025-08-12T21:58:17.944835"
+      "id": "cascade_41e556fa",
+      "log_count": 31,
+      "start_time": "2025-08-12T20:08:43.343791",
+      "end_time": "2025-08-12T20:27:43.343791"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_8e799e0b",
+      "log_count": 29,
+      "start_time": "2025-08-12T20:38:43.343791",
+      "end_time": "2025-08-12T20:57:43.343791"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_54376d7b",
+      "log_count": 33,
+      "start_time": "2025-08-12T21:08:43.343791",
+      "end_time": "2025-08-12T21:27:43.343791"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_5168320c",
+      "log_count": 31,
+      "start_time": "2025-08-12T21:38:43.343791",
+      "end_time": "2025-08-12T21:57:43.343791"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_abb17cdb",
+      "log_count": 31,
+      "start_time": "2025-08-12T22:08:43.343791",
+      "end_time": "2025-08-12T22:27:43.343791"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_716210dc",
+      "log_count": 30,
+      "start_time": "2025-08-12T22:38:43.343791",
+      "end_time": "2025-08-12T22:57:43.343791"
     },
     {
       "type": "memory_leak",
-      "id": "memleak_47b6790c",
+      "id": "memleak_fb40e0c3",
       "log_count": 31,
-      "start_time": "2025-08-12T22:09:17.944835",
-      "end_time": "2025-08-12T23:10:17.944835"
+      "start_time": "2025-08-12T23:08:43.343791",
+      "end_time": "2025-08-13T00:09:43.343791"
     },
     {
       "type": "memory_leak",
-      "id": "memleak_7cbc3808",
+      "id": "memleak_bdddd220",
       "log_count": 31,
-      "start_time": "2025-08-12T23:19:17.944835",
-      "end_time": "2025-08-13T00:20:17.944835"
+      "start_time": "2025-08-13T00:18:43.343791",
+      "end_time": "2025-08-13T01:19:43.343791"
     },
     {
       "type": "memory_leak",
-      "id": "memleak_875acf9e",
+      "id": "memleak_31c89a80",
       "log_count": 31,
-      "start_time": "2025-08-13T00:29:17.944835",
-      "end_time": "2025-08-13T01:30:17.944835"
+      "start_time": "2025-08-13T01:28:43.343791",
+      "end_time": "2025-08-13T02:29:43.343791"
     },
     {
       "type": "memory_leak",
-      "id": "memleak_57234424",
+      "id": "memleak_ee97196a",
       "log_count": 31,
-      "start_time": "2025-08-13T01:39:17.944835",
-      "end_time": "2025-08-13T02:40:17.944835"
+      "start_time": "2025-08-13T02:38:43.343791",
+      "end_time": "2025-08-13T03:39:43.343791"
     },
     {
       "type": "memory_leak",
-      "id": "memleak_c9ad8dbc",
+      "id": "memleak_9c08c736",
       "log_count": 31,
-      "start_time": "2025-08-13T02:49:17.944835",
-      "end_time": "2025-08-13T03:50:17.944835"
+      "start_time": "2025-08-13T03:48:43.343791",
+      "end_time": "2025-08-13T04:49:43.343791"
     },
     {
       "type": "ddos_attack",
-      "id": "ddos_cd6f1948",
-      "log_count": 252,
-      "start_time": "2025-08-13T03:59:17.944835",
-      "end_time": "2025-08-13T04:13:17.944835"
+      "id": "ddos_043e1eaf",
+      "log_count": 237,
+      "start_time": "2025-08-13T04:58:43.343791",
+      "end_time": "2025-08-13T05:12:43.343791"
     },
     {
       "type": "ddos_attack",
-      "id": "ddos_3af6fb06",
-      "log_count": 250,
-      "start_time": "2025-08-13T04:19:17.944835",
-      "end_time": "2025-08-13T04:33:17.944835"
+      "id": "ddos_676eff26",
+      "log_count": 244,
+      "start_time": "2025-08-13T05:18:43.343791",
+      "end_time": "2025-08-13T05:32:43.343791"
     },
     {
       "type": "ddos_attack",
-      "id": "ddos_708ebee6",
-      "log_count": 262,
-      "start_time": "2025-08-13T04:39:17.944835",
-      "end_time": "2025-08-13T04:53:17.944835"
+      "id": "ddos_bdf3b388",
+      "log_count": 237,
+      "start_time": "2025-08-13T05:38:43.343791",
+      "end_time": "2025-08-13T05:52:43.343791"
     }
   ],
   "services": [
-    "cache-service",
-    "database-primary",
-    "api-gateway",
     "user-service",
+    "api-gateway",
     "auth-service",
-    "database-replica",
-    "notification-service",
+    "cache-service",
+    "analytics-service",
     "inventory-service",
+    "database-primary",
     "payment-service",
-    "analytics-service"
+    "notification-service",
+    "database-replica"
   ],
   "anomaly_types": [
-    "high_cpu",
     "high_memory",
-    "connection_pool",
+    "high_cpu",
+    "high_latency",
     "high_error_rate",
-    "high_latency"
+    "connection_pool"
   ],
   "time_range": {
-    "start": "2025-08-12T17:09:17.944835",
-    "end": "2025-08-14T05:58:17.944835"
+    "start": "2025-08-12T18:08:43.343791",
+    "end": "2025-08-14T06:57:43.343791"
   },
   "streaming_info": {
     "recommended_rate": "10 logs/second",
