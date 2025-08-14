@@ -1,0 +1,154 @@
+{
+  "cpu_overload": {
+    "description": "High CPU usage across services",
+    "actions": [
+      {
+        "action_type": "scale_up",
+        "description": "Scale up service instances",
+        "commands": [
+          "kubectl scale deployment --replicas=5",
+          "docker-compose up --scale web=5"
+        ],
+        "expected_duration": 120,
+        "risk_level": "low",
+        "prerequisites": [
+          "Check available resources"
+        ],
+        "rollback_commands": [
+          "kubectl scale deployment --replicas=3"
+        ]
+      },
+      {
+        "action_type": "clear_cache",
+        "description": "Clear application cache",
+        "commands": [
+          "redis-cli flushall",
+          "systemctl restart memcached"
+        ],
+        "expected_duration": 30,
+        "risk_level": "low",
+        "prerequisites": [
+          "Backup cache data"
+        ],
+        "rollback_commands": [
+          "redis-cli restore backup"
+        ]
+      }
+    ],
+    "success_rate": 0.85
+  },
+  "memory_leak": {
+    "description": "Memory usage spike and garbage collection issues",
+    "actions": [
+      {
+        "action_type": "restart_service",
+        "description": "Restart affected service",
+        "commands": [
+          "systemctl restart web-service",
+          "docker restart web-container"
+        ],
+        "expected_duration": 60,
+        "risk_level": "medium",
+        "prerequisites": [
+          "Check service dependencies"
+        ],
+        "rollback_commands": [
+          "systemctl start web-service"
+        ]
+      },
+      {
+        "action_type": "clear_cache",
+        "description": "Clear memory cache",
+        "commands": [
+          "echo 3 > /proc/sys/vm/drop_caches",
+          "systemctl restart memcached"
+        ],
+        "expected_duration": 15,
+        "risk_level": "low",
+        "prerequisites": [
+          "Check memory usage"
+        ],
+        "rollback_commands": [
+          "systemctl restart affected-services"
+        ]
+      }
+    ],
+    "success_rate": 0.75
+  },
+  "database_slowdown": {
+    "description": "Slow database queries and connection pool exhaustion",
+    "actions": [
+      {
+        "action_type": "update_config",
+        "description": "Optimize database configuration",
+        "commands": [
+          "mysql -e 'SET GLOBAL max_connections=200'",
+          "postgresql.conf optimization"
+        ],
+        "expected_duration": 45,
+        "risk_level": "medium",
+        "prerequisites": [
+          "Backup database"
+        ],
+        "rollback_commands": [
+          "mysql -e 'SET GLOBAL max_connections=100'"
+        ]
+      },
+      {
+        "action_type": "clear_cache",
+        "description": "Clear database query cache",
+        "commands": [
+          "mysql -e 'FLUSH QUERY CACHE'",
+          "redis-cli flushdb"
+        ],
+        "expected_duration": 20,
+        "risk_level": "low",
+        "prerequisites": [
+          "Check cache hit rates"
+        ],
+        "rollback_commands": [
+          "Restore from backup"
+        ]
+      }
+    ],
+    "success_rate": 0.8
+  },
+  "network_latency": {
+    "description": "High network latency and timeout errors",
+    "actions": [
+      {
+        "action_type": "update_config",
+        "description": "Increase timeout values",
+        "commands": [
+          "Update nginx timeout settings",
+          "Increase application timeouts"
+        ],
+        "expected_duration": 30,
+        "risk_level": "low",
+        "prerequisites": [
+          "Check current timeout values"
+        ],
+        "rollback_commands": [
+          "Restore original timeout settings"
+        ]
+      },
+      {
+        "action_type": "scale_up",
+        "description": "Add load balancer instances",
+        "commands": [
+          "kubectl scale deployment lb --replicas=3",
+          "Add CDN endpoints"
+        ],
+        "expected_duration": 90,
+        "risk_level": "medium",
+        "prerequisites": [
+          "Check network capacity"
+        ],
+        "rollback_commands": [
+          "kubectl scale deployment lb --replicas=1"
+        ]
+      }
+    ],
+    "success_rate": 0.7
+  }
+}

@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRE Agent - Live Mitigation Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #00ff88, #00aaff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel h2 {
+            margin-bottom: 15px;
+            color: #00ff88;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-healthy { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+        .status-warning { background: #ffaa00; box-shadow: 0 0 10px #ffaa00; }
+        .status-critical { background: #ff3366; box-shadow: 0 0 10px #ff3366; }
+        .status-mitigating { background: #00aaff; box-shadow: 0 0 10px #00aaff; animation: pulse 0.5s infinite; }
+
+        .log-stream {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+
+        .log-entry {
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 4px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .log-error { background: rgba(255, 51, 102, 0.2); border-left: 3px solid #ff3366; }
+        .log-warning { background: rgba(255, 170, 0, 0.2); border-left: 3px solid #ffaa00; }
+        .log-info { background: rgba(0, 255, 136, 0.1); border-left: 3px solid #00ff88; }
+        .log-mitigation { background: rgba(0, 170, 255, 0.2); border-left: 3px solid #00aaff; }
+        .log-anomaly { background: rgba(255, 0, 255, 0.2); border-left: 3px solid #ff00ff; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(45deg, #00ff88, #00aaff);
+            color: #0f0f1e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button.danger {
+            background: linear-gradient(45deg, #ff3366, #ff6600);
+        }
+
+        button.warning {
+            background: linear-gradient(45deg, #ffaa00, #ff6600);
+        }
+
+        .mitigation-log {
+            background: rgba(0, 170, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid rgba(0, 170, 255, 0.3);
+        }
+
+        .mitigation-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .mitigation-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .status-success { background: #00ff88; color: #0f0f1e; }
+        .status-pending { background: #ffaa00; color: #0f0f1e; }
+        .status-failed { background: #ff3366; color: white; }
+
+        .detection-alert {
+            background: rgba(255, 51, 102, 0.1);
+            border: 1px solid #ff3366;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            animation: alertPulse 1s ease-out;
+        }
+
+        @keyframes alertPulse {
+            0% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 51, 102, 0.5); }
+            100% { transform: scale(1); box-shadow: none; }
+        }
+
+        .graph-container {
+            height: 150px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .graph-line {
+            stroke: #00ff88;
+            stroke-width: 2;
+            fill: none;
+            filter: drop-shadow(0 0 3px #00ff88);
+        }
+
+        .graph-grid {
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 1;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00aaff);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .agent-activity {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .agent-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 150px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .agent-card.active {
+            border-color: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            animation: agentPulse 1s infinite;
+        }
+
+        @keyframes agentPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .agent-name {
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+
+        .agent-status {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .connected {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .disconnected {
+            background: rgba(255, 51, 102, 0.2);
+            border: 1px solid #ff3366;
+            color: #ff3366;
+        }
+
+        .anomaly-presets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .preset-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .preset-card:hover {
+            border-color: #ff3366;
+            box-shadow: 0 0 15px rgba(255, 51, 102, 0.3);
+        }
+
+        .preset-title {
+            font-weight: bold;
+            color: #ff3366;
+            margin-bottom: 5px;
+        }
+
+        .preset-description {
+            font-size: 0.85em;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .rag-knowledge {
+            background: rgba(0, 170, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid rgba(0, 170, 255, 0.3);
+        }
+
+        .knowledge-entry {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 3px solid #00aaff;
+        }
+
+        .knowledge-title {
+            font-weight: bold;
+            color: #00aaff;
+            margin-bottom: 5px;
+        }
+
+        .knowledge-solution {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 SRE Agent - Live Mitigation System</h1>
+        
+        <div class="connection-status" id="connectionStatus">
+            <span id="connectionText">Connecting...</span>
+        </div>
+        
+        <div class="grid">
+            <!-- System Status Panel -->
+            <div class="panel">
+                <h2>
+                    <span class="status-indicator status-healthy" id="systemStatus"></span>
+                    System Status
+                </h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="logsProcessed">0</div>
+                        <div class="metric-label">Logs Processed</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="anomaliesDetected">0</div>
+                        <div class="metric-label">Anomalies</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="autoResolved">0</div>
+                        <div class="metric-label">Auto-Resolved</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="pagesSent">0</div>
+                        <div class="metric-label">Pages Sent</div>
+                    </div>
+                </div>
+                <div class="graph-container">
+                    <svg width="100%" height="100%" id="performanceGraph">
+                        <!-- Grid lines -->
+                        <line x1="0" y1="50%" x2="100%" y2="50%" class="graph-grid"/>
+                        <polyline id="graphLine" class="graph-line" points=""/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Live Log Stream -->
+            <div class="panel">
+                <h2>📊 Live Log Stream</h2>
+                <div class="log-stream" id="logStream"></div>
+                <div class="action-buttons">
+                    <button onclick="refreshData()">Refresh Data</button>
+                    <button onclick="clearLogs()">Clear Logs</button>
+                    <button onclick="toggleAutoRefresh()" id="autoRefreshBtn">Auto Refresh: ON</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Anomaly Simulation Panel -->
+        <div class="panel full-width">
+            <h2>🚨 Anomaly Simulation</h2>
+            <p style="margin-bottom: 15px; opacity: 0.8;">Trigger preset anomalies to test the RAG-based mitigation system:</p>
+            <div class="anomaly-presets">
+                <div class="preset-card">
+                    <div class="preset-title">🔥 CPU Overload</div>
+                    <div class="preset-description">Simulate high CPU usage (95%+) across multiple services</div>
+                    <button class="danger" onclick="triggerAnomaly('cpu_overload')">Trigger CPU Overload</button>
+                </div>
+                <div class="preset-card">
+                    <div class="preset-title">💾 Memory Leak</div>
+                    <div class="preset-description">Simulate memory usage spike and garbage collection issues</div>
+                    <button class="danger" onclick="triggerAnomaly('memory_leak')">Trigger Memory Leak</button>
+                </div>
+                <div class="preset-card">
+                    <div class="preset-title">🐌 Database Slowdown</div>
+                    <div class="preset-description">Simulate slow database queries and connection pool exhaustion</div>
+                    <button class="warning" onclick="triggerAnomaly('database_slowdown')">Trigger DB Slowdown</button>
+                </div>
+                <div class="preset-card">
+                    <div class="preset-title">🌐 Network Latency</div>
+                    <div class="preset-description">Simulate high network latency and timeout errors</div>
+                    <button class="warning" onclick="triggerAnomaly('network_latency')">Trigger Network Issues</button>
+                </div>
+                <div class="preset-card">
+                    <div class="preset-title">💥 Service Crash</div>
+                    <div class="preset-description">Simulate critical service failure and cascading errors</div>
+                    <button class="danger" onclick="triggerAnomaly('service_crash')">Trigger Service Crash</button>
+                </div>
+                <div class="preset-card">
+                    <div class="preset-title">🔄 Reset System</div>
+                    <div class="preset-description">Reset all anomalies and return to normal operation</div>
+                    <button onclick="resetSystem()">Reset to Normal</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Activity Panel -->
+        <div class="panel full-width">
+            <h2>🤖 Agent Activity</h2>
+            <div class="agent-activity" id="agentActivity">
+                <div class="agent-card" id="anomalyDetector">
+                    <div class="agent-name">Anomaly Detector</div>
+                    <div class="agent-status">Idle</div>
+                </div>
+                <div class="agent-card" id="mitigationAgent">
+                    <div class="agent-name">Mitigation Agent</div>
+                    <div class="agent-status">Idle</div>
+                </div>
+                <div class="agent-card" id="ragAgent">
+                    <div class="agent-name">RAG Agent</div>
+                    <div class="agent-status">Idle</div>
+                </div>
+                <div class="agent-card" id="advancedLLM">
+                    <div class="agent-name">Advanced LLM</div>
+                    <div class="agent-status">Idle</div>
+                </div>
+                <div class="agent-card" id="databaseAgent">
+                    <div class="agent-name">Database Agent</div>
+                    <div class="agent-status">Idle</div>
+                </div>
+                <div class="agent-card" id="pagingAgent">
+                    <div class="agent-name">Paging Agent</div>
+                    <div class="agent-status">Idle</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detection & Analysis Panel -->
+        <div class="panel full-width">
+            <h2>🔍 Pattern Detection & Analysis</h2>
+            <div id="detectionAlerts"></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="analysisProgress" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- RAG Knowledge Base Panel -->
+        <div class="panel full-width">
+            <h2>📚 RAG Knowledge Base</h2>
+            <div class="rag-knowledge" id="ragKnowledge">
+                <div style="text-align: center; opacity: 0.5;">Knowledge base ready. Waiting for anomalies to trigger RAG agent...</div>
+            </div>
+        </div>
+
+        <!-- Mitigation Actions Panel -->
+        <div class="panel full-width">
+            <h2>⚡ Automated Mitigation Actions</h2>
+            <div class="mitigation-log" id="mitigationLog">
+                <div style="text-align: center; opacity: 0.5;">No mitigations triggered yet. Use anomaly simulation to test the system.</div>
+            </div>
+        </div>
+
+        <!-- Agent Decision Log -->
+        <div class="panel full-width">
+            <h2>🧠 Agent Decision Log</h2>
+            <div class="log-stream" id="decisionLog" style="height: 150px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // SRE Agent Dashboard - Real-time Integration with Anomaly Simulation
+        class SREDashboard {
+            constructor() {
+                this.apiBase = '/api';
+                this.autoRefresh = true;
+                this.refreshInterval = null;
+                this.lastLogCount = 0;
+                this.lastAnomalyCount = 0;
+                this.agentStates = {};
+                this.graphData = [];
+                this.mitigationHistory = [];
+                this.activeAnomalies = [];
+                
+                // RAG Knowledge Base for different anomaly types
+                this.ragKnowledgeBase = {
+                    cpu_overload: {
+                        title: "CPU Overload Mitigation",
+                        solutions: [
+                            "Scale horizontally by adding more instances",
+                            "Optimize database queries and add indexes",
+                            "Enable caching for frequently accessed data",
+                            "Implement circuit breakers for external services"
+                        ],
+                        priority: "high"
+                    },
+                    memory_leak: {
+                        title: "Memory Leak Resolution",
+                        solutions: [
+                            "Force garbage collection and memory cleanup",
+                            "Restart the affected service",
+                            "Increase memory limits temporarily",
+                            "Analyze heap dumps for memory leaks"
+                        ],
+                        priority: "high"
+                    },
+                    database_slowdown: {
+                        title: "Database Performance Issues",
+                        solutions: [
+                            "Add database indexes for slow queries",
+                            "Implement connection pooling",
+                            "Enable query caching",
+                            "Scale database read replicas"
+                        ],
+                        priority: "medium"
+                    },
+                    network_latency: {
+                        title: "Network Latency Issues",
+                        solutions: [
+                            "Enable CDN for static content",
+                            "Implement request timeouts and retries",
+                            "Use connection pooling",
+                            "Switch to closer data centers"
+                        ],
+                        priority: "medium"
+                    },
+                    service_crash: {
+                        title: "Critical Service Failure",
+                        solutions: [
+                            "Immediate service restart",
+                            "Rollback to previous stable version",
+                            "Enable circuit breakers",
+                            "Page on-call engineer for manual intervention"
+                        ],
+                        priority: "critical"
+                    }
+                };
+                
+                this.init();
+            }
+
+            async init() {
+                this.updateConnectionStatus('Connecting...', 'disconnected');
+                
+                try {
+                    // Test connection
+                    await this.testConnection();
+                    this.updateConnectionStatus('Connected to SRE Agent', 'connected');
+                    
+                    // Start real-time updates
+                    this.startRealTimeUpdates();
+                    
+                    // Load initial data
+                    await this.loadInitialData();
+                    
+                    // Initialize with clean state
+                    this.resetToCleanState();
+                    
+                } catch (error) {
+                    console.error('Failed to initialize dashboard:', error);
+                    this.updateConnectionStatus('Connection Failed', 'disconnected');
+                }
+            }
+
+            resetToCleanState() {
+                // Clear all anomalies and start fresh
+                this.activeAnomalies = [];
+                this.mitigationHistory = [];
+                document.getElementById('detectionAlerts').innerHTML = '';
+                document.getElementById('mitigationLog').innerHTML = '<div style="text-align: center; opacity: 0.5;">No mitigations triggered yet. Use anomaly simulation to test the system.</div>';
+                document.getElementById('ragKnowledge').innerHTML = '<div style="text-align: center; opacity: 0.5;">Knowledge base ready. Waiting for anomalies to trigger RAG agent...</div>';
+                this.updateSystemStatus('healthy');
+                this.addLog('INFO', '✅ System initialized in clean state - ready for anomaly simulation');
+            }
+
+            async testConnection() {
+                const response = await fetch(`${this.apiBase}/health`);
+                if (!response.ok) {
+                    throw new Error('Health check failed');
+                }
+                return await response.json();
+            }
+
+            async loadInitialData() {
+                try {
+                    // Load dashboard metrics
+                    const metrics = await this.fetchMetrics();
+                    this.updateMetrics(metrics);
+                    
+                    // Load agent status
+                    const agentStatus = await this.fetchAgentStatus();
+                    this.updateAgentStatus(agentStatus);
+                    
+                } catch (error) {
+                    console.error('Failed to load initial data:', error);
+                }
+            }
+
+            startRealTimeUpdates() {
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                }
+                
+                this.refreshInterval = setInterval(async () => {
+                    if (this.autoRefresh) {
+                        await this.refreshData();
+                    }
+                }, 3000); // Refresh every 3 seconds
+            }
+
+            async refreshData() {
+                try {
+                    // Fetch latest metrics
+                    const metrics = await this.fetchMetrics();
+                    this.updateMetrics(metrics);
+                    
+                    // Check for new logs processed
+                    if (metrics.logsProcessed > this.lastLogCount) {
+                        const newLogs = metrics.logsProcessed - this.lastLogCount;
+                        this.addLog('INFO', `📊 Processed ${newLogs} new log(s) from Kafka stream`);
+                    }
+                    this.lastLogCount = metrics.logsProcessed;
+                    
+                    // Update agent status
+                    const agentStatus = await this.fetchAgentStatus();
+                    this.updateAgentStatus(agentStatus);
+                    
+                    // Update graph
+                    this.updateGraph(metrics.logsProcessed);
+                    
+                } catch (error) {
+                    console.error('Failed to refresh data:', error);
+                    this.updateConnectionStatus('Connection Lost', 'disconnected');
+                }
+            }
+
+            async fetchMetrics() {
+                const response = await fetch(`${this.apiBase}/dashboard/metrics`);
+                if (!response.ok) throw new Error('Failed to fetch metrics');
+                return await response.json();
+            }
+
+            async fetchAgentStatus() {
+                const response = await fetch(`${this.apiBase}/agents/status`);
+                if (!response.ok) throw new Error('Failed to fetch agent status');
+                return await response.json();
+            }
+
+            updateMetrics(metrics) {
+                document.getElementById('logsProcessed').textContent = metrics.logsProcessed.toLocaleString();
+                document.getElementById('anomaliesDetected').textContent = this.activeAnomalies.length;
+                document.getElementById('autoResolved').textContent = this.mitigationHistory.filter(m => m.status === 'success').length;
+                document.getElementById('pagesSent').textContent = this.activeAnomalies.filter(a => a.priority === 'critical').length;
+                
+                // Update system status based on active anomalies
+                this.updateSystemStatus();
+            }
+
+            updateSystemStatus() {
+                const indicator = document.getElementById('systemStatus');
+                let status = 'healthy';
+                
+                if (this.activeAnomalies.some(a => a.priority === 'critical')) {
+                    status = 'critical';
+                } else if (this.activeAnomalies.length > 0) {
+                    status = 'warning';
+                }
+                
+                indicator.className = `status-indicator status-${status}`;
+            }
+
+            updateAgentStatus(agentData) {
+                agentData.agents.forEach(agent => {
+                    const agentCard = document.getElementById(agent.name.toLowerCase().replace(/\s+/g, ''));
+                    if (agentCard) {
+                        const statusDiv = agentCard.querySelector('.agent-status');
+                        statusDiv.textContent = agent.status;
+                        
+                        // Update agent activity based on status
+                        if (agent.status === 'online') {
+                            agentCard.classList.add('active');
+                        } else {
+                            agentCard.classList.remove('active');
+                        }
+                    }
+                });
+            }
+
+            updateGraph(logCount) {
+                this.graphData.push(logCount);
+                if (this.graphData.length > 50) {
+                    this.graphData.shift();
+                }
+                
+                const svg = document.getElementById('performanceGraph');
+                const width = svg.clientWidth;
+                const height = svg.clientHeight;
+                
+                if (this.graphData.length > 1) {
+                    const maxValue = Math.max(...this.graphData);
+                    const minValue = Math.min(...this.graphData);
+                    const range = maxValue - minValue || 1;
+                    
+                    const points = this.graphData.map((value, index) => {
+                        const x = (index / (this.graphData.length - 1)) * width;
+                        const y = height - ((value - minValue) / range) * height;
+                        return `${x},${y}`;
+                    }).join(' ');
+                    
+                    document.getElementById('graphLine').setAttribute('points', points);
+                }
+            }
+
+            triggerAnomaly(anomalyType) {
+                const anomaly = this.ragKnowledgeBase[anomalyType];
+                if (!anomaly) return;
+
+                // Add to active anomalies
+                const anomalyId = Date.now();
+                this.activeAnomalies.push({
+                    id: anomalyId,
+                    type: anomalyType,
+                    title: anomaly.title,
+                    priority: anomaly.priority,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Create detection alert
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'detection-alert';
+                alertDiv.innerHTML = `
+                    <strong>🚨 ${anomaly.title}</strong><br>
+                    <small>Priority: ${anomaly.priority.toUpperCase()} | Confidence: ${(85 + Math.random() * 15).toFixed(1)}%</small>
+                `;
+                
+                const alertsContainer = document.getElementById('detectionAlerts');
+                alertsContainer.insertBefore(alertDiv, alertsContainer.firstChild);
+                
+                // Log the anomaly
+                this.addLog('ANOMALY', `🚨 ${anomaly.title} detected!`);
+                this.addDecision(`Anomaly Detector: ${anomaly.title} identified with high confidence`);
+                
+                // Trigger RAG agent
+                this.activateRAGAgent(anomalyType, anomaly);
+                
+                // Update system status
+                this.updateSystemStatus();
+            }
+
+            activateRAGAgent(anomalyType, anomaly) {
+                // Activate anomaly detector
+                this.activateAgent('anomalyDetector', 'Analyzing anomaly pattern...');
+                
+                setTimeout(() => {
+                    // Activate mitigation agent
+                    this.activateAgent('mitigationAgent', 'Classifying error type...');
+                }, 1000);
+                
+                setTimeout(() => {
+                    // Activate RAG agent
+                    this.activateAgent('ragAgent', 'Searching knowledge base...');
+                    this.displayRAGKnowledge(anomaly);
+                }, 2000);
+                
+                setTimeout(() => {
+                    // Execute mitigation
+                    this.executeRAGMitigation(anomalyType, anomaly);
+                }, 3000);
+            }
+
+            displayRAGKnowledge(anomaly) {
+                const knowledgeContainer = document.getElementById('ragKnowledge');
+                knowledgeContainer.innerHTML = '';
+                
+                const knowledgeDiv = document.createElement('div');
+                knowledgeDiv.className = 'knowledge-entry';
+                knowledgeDiv.innerHTML = `
+                    <div class="knowledge-title">${anomaly.title}</div>
+                    <div class="knowledge-solution">
+                        <strong>RAG Agent found ${anomaly.solutions.length} solutions:</strong><br>
+                        ${anomaly.solutions.map((solution, index) => `${index + 1}. ${solution}`).join('<br>')}
+                    </div>
+                `;
+                
+                knowledgeContainer.appendChild(knowledgeDiv);
+                this.addDecision(`RAG Agent: Retrieved ${anomaly.solutions.length} mitigation strategies from knowledge base`);
+            }
+
+            executeRAGMitigation(anomalyType, anomaly) {
+                const solutions = anomaly.solutions;
+                const selectedSolution = solutions[Math.floor(Math.random() * solutions.length)];
+                
+                const mitigationId = Date.now();
+                const mitigationEntry = {
+                    id: mitigationId,
+                    anomaly: anomaly.title,
+                    action: selectedSolution,
+                    status: 'pending',
+                    timestamp: new Date().toISOString()
+                };
+                
+                this.mitigationHistory.push(mitigationEntry);
+                this.displayMitigation(mitigationEntry);
+                
+                // Log the mitigation action
+                this.addLog('MITIGATION', `RAG Agent executing: ${selectedSolution}`);
+                this.addDecision(`RAG Agent: Selected mitigation strategy - ${selectedSolution}`);
+                
+                // Simulate mitigation execution
+                setTimeout(() => {
+                    const success = Math.random() > 0.2; // 80% success rate
+                    
+                    if (success) {
+                        mitigationEntry.status = 'success';
+                        this.resolveAnomaly(anomalyType);
+                        this.addLog('INFO', `✅ RAG mitigation successful: ${selectedSolution}`);
+                        this.addDecision(`RAG Agent: Mitigation completed successfully. System recovering.`);
+                    } else {
+                        mitigationEntry.status = 'failed';
+                        this.addLog('ERROR', `✗ RAG mitigation failed: ${selectedSolution}`);
+                        this.addDecision(`RAG Agent: Mitigation failed. Escalating to Advanced LLM.`);
+                        
+                        // Escalate to Advanced LLM
+                        setTimeout(() => {
+                            this.activateAgent('advancedLLM', 'Analyzing complex failure...');
+                            this.addDecision('Advanced LLM: Taking over complex mitigation scenario');
+                        }, 1000);
+                    }
+                    
+                    this.updateMitigationStatus(mitigationId, mitigationEntry.status);
+                }, 2000 + Math.random() * 3000);
+            }
+
+            resolveAnomaly(anomalyType) {
+                // Remove from active anomalies
+                this.activeAnomalies = this.activeAnomalies.filter(a => a.type !== anomalyType);
+                
+                // Update display
+                this.updateSystemStatus();
+                
+                // Clear knowledge base after successful resolution
+                setTimeout(() => {
+                    document.getElementById('ragKnowledge').innerHTML = '<div style="text-align: center; opacity: 0.5;">Knowledge base ready. Waiting for anomalies to trigger RAG agent...</div>';
+                }, 5000);
+            }
+
+            resetSystem() {
+                this.resetToCleanState();
+                this.addLog('INFO', '🔄 System reset to normal operation');
+                this.addDecision('System: All anomalies cleared, returning to normal monitoring');
+            }
+
+            activateAgent(agentId, action) {
+                const agentCard = document.getElementById(agentId);
+                if (agentCard) {
+                    agentCard.classList.add('active');
+                    const statusDiv = agentCard.querySelector('.agent-status');
+                    statusDiv.textContent = action;
+                    
+                    this.addDecision(`${agentCard.querySelector('.agent-name').textContent}: ${action}`);
+                    
+                    setTimeout(() => {
+                        agentCard.classList.remove('active');
+                        statusDiv.textContent = 'Idle';
+                    }, 3000);
+                }
+            }
+
+            displayMitigation(entry) {
+                const logContainer = document.getElementById('mitigationLog');
+                
+                if (logContainer.children[0]?.style?.textAlign === 'center') {
+                    logContainer.innerHTML = '';
+                }
+                
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'mitigation-entry';
+                entryDiv.id = `mitigation-${entry.id}`;
+                entryDiv.innerHTML = `
+                    <div>
+                        <strong>${entry.anomaly}</strong>
+                        <br><small>${entry.action}</small>
+                    </div>
+                    <span class="mitigation-status status-${entry.status}">${entry.status.toUpperCase()}</span>
+                `;
+                
+                logContainer.insertBefore(entryDiv, logContainer.firstChild);
+                
+                if (logContainer.children.length > 5) {
+                    logContainer.removeChild(logContainer.lastChild);
+                }
+            }
+
+            updateMitigationStatus(id, status) {
+                const entry = document.querySelector(`#mitigation-${id} .mitigation-status`);
+                if (entry) {
+                    entry.className = `mitigation-status status-${status}`;
+                    entry.textContent = status.toUpperCase();
+                }
+            }
+
+            addLog(level, message) {
+                const logStream = document.getElementById('logStream');
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry log-${level.toLowerCase()}`;
+                logEntry.textContent = `[${new Date().toISOString().split('T')[1].split('.')[0]}] ${message}`;
+                
+                logStream.insertBefore(logEntry, logStream.firstChild);
+                
+                if (logStream.children.length > 20) {
+                    logStream.removeChild(logStream.lastChild);
+                }
+            }
+
+            addDecision(decision) {
+                const decisionLog = document.getElementById('decisionLog');
+                const entry = document.createElement('div');
+                entry.className = 'log-entry log-info';
+                entry.textContent = `[${new Date().toISOString().split('T')[1].split('.')[0]}] ${decision}`;
+                
+                decisionLog.insertBefore(entry, decisionLog.firstChild);
+                
+                if (decisionLog.children.length > 15) {
+                    decisionLog.removeChild(decisionLog.lastChild);
+                }
+            }
+
+            updateConnectionStatus(text, status) {
+                const statusElement = document.getElementById('connectionStatus');
+                const textElement = document.getElementById('connectionText');
+                
+                textElement.textContent = text;
+                statusElement.className = `connection-status ${status}`;
+            }
+
+            toggleAutoRefresh() {
+                this.autoRefresh = !this.autoRefresh;
+                const btn = document.getElementById('autoRefreshBtn');
+                btn.textContent = `Auto Refresh: ${this.autoRefresh ? 'ON' : 'OFF'}`;
+                
+                if (this.autoRefresh) {
+                    this.startRealTimeUpdates();
+                } else if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                }
+            }
+
+            clearLogs() {
+                document.getElementById('logStream').innerHTML = '';
+                document.getElementById('decisionLog').innerHTML = '';
+            }
+        }
+
+        // Initialize the dashboard
+        const dashboard = new SREDashboard();
+
+        // Global functions for buttons
+        function refreshData() {
+            dashboard.refreshData();
+        }
+
+        function clearLogs() {
+            dashboard.clearLogs();
+        }
+
+        function toggleAutoRefresh() {
+            dashboard.toggleAutoRefresh();
+        }
+
+        function triggerAnomaly(anomalyType) {
+            dashboard.triggerAnomaly(anomalyType);
+        }
+
+        function resetSystem() {
+            dashboard.resetSystem();
+        }
+
+        // Auto-start for demo purposes
+        window.addEventListener('load', () => {
+            console.log('SRE Agent Dashboard loaded - ready for anomaly simulation...');
+        });
+    </script>
+</body>
+</html> 

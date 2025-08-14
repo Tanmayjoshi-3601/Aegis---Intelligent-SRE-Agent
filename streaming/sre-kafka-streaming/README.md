@@ -1,4 +1,4 @@
-# 🛡️ Aegis - Intelligent SRE Agent
+# 🚀 Intelligent SRE Agent - Real-Time Anomaly Detection & Automated Mitigation
 
 A comprehensive Site Reliability Engineering (SRE) system that combines Machine Learning anomaly detection, RAG-based knowledge retrieval, and automated mitigation strategies with real-time monitoring and human escalation capabilities.
 
@@ -11,7 +11,7 @@ A comprehensive Site Reliability Engineering (SRE) system that combines Machine 
 
 ## 🎯 Overview
 
-Aegis is an intelligent SRE agent that provides end-to-end automation for detecting, analyzing, and resolving system anomalies in real-time. It combines multiple AI agents working in orchestration to provide intelligent, automated incident response with human oversight for critical issues.
+This Intelligent SRE Agent system provides end-to-end automation for detecting, analyzing, and resolving system anomalies in real-time. It combines multiple AI agents working in orchestration to provide intelligent, automated incident response with human oversight for critical issues.
 
 ### 🔥 Key Features
 
@@ -73,72 +73,6 @@ Aegis is an intelligent SRE agent that provides end-to-end automation for detect
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 📁 Project Structure
-
-```
-Aegis---Intelligent-SRE-Agent/
-├── orchestration/          # Core orchestration engine
-│   ├── ml_orchestrator.py  # ML model orchestration
-│   ├── sre_agent_orchestrator.py  # Main SRE orchestrator
-│   ├── validation_simulator.py    # Mitigation validation
-│   └── config.py           # Orchestration configuration
-├── agents/                 # Individual agent implementations
-│   ├── anomaly_detector_agent.py  # ML-based anomaly detection
-│   ├── rag_agent.py        # RAG knowledge retrieval
-│   ├── mitigation_agent.py # Automated mitigation
-│   ├── advanced_llm_agent.py      # Critical issue analysis
-│   ├── report_generation_agent.py # Email report generation
-│   ├── paging_agent.py     # Twilio phone paging
-│   └── __init__.py         # Agent package initialization
-├── ml_pipeline/            # ML models and training
-│   ├── anomaly_detector.py # ML pipeline for anomaly detection
-│   ├── saved_models/       # Trained model files
-│   └── notebooks/          # Jupyter notebooks for exploration
-├── streaming/              # Kafka integration
-│   └── kafka/              # Kafka streaming components
-│       └── custom_log_streamer.py
-├── communications/         # Voice and email systems
-│   ├── eleven_labs/        # Voice synthesis (future)
-│   └── twilio/             # Call and email delivery (future)
-├── frontend/               # Dashboard UI
-│   ├── index.html          # Main dashboard
-│   ├── styles.css          # Dashboard styling
-│   └── js/                 # JavaScript components
-├── data/                   # Synthetic data and knowledge base
-│   ├── knowledge_base/     # RAG knowledge base
-│   ├── logs.json           # Sample log data
-│   ├── metadata.json       # System metadata
-│   └── playbooks/          # Mitigation playbooks
-├── tests/                  # Test suites
-│   ├── test_complete_system.py
-│   ├── test_ml_orchestrator.py
-│   ├── test_rag_agent.py
-│   └── test_streaming.py
-├── config/                 # Configuration files
-│   └── sre_agent_config.json
-├── scripts/                # Setup and utility scripts
-│   ├── init_db.sql         # Database initialization
-│   ├── install.sh          # Installation script
-│   └── cleanup.sh          # Cleanup utilities
-├── logs/                   # Application logs
-├── docs/                   # Documentation
-│   ├── README_DASHBOARD.md
-│   ├── README_SRE_AGENT.md
-│   ├── KAFKA_SETUP_GUIDE.md
-│   └── INTEGRATION.md
-├── config/docker-compose.yml      # Infrastructure setup
-├── config/requirements.txt        # Python dependencies
-├── config/requirements-dashboard.txt
-├── config/requirements-streaming.txt
-├── orchestration/config.py        # Main configuration
-├── orchestration/dashboard_server.py     # Dashboard server
-├── orchestration/dashboard_server_simple.py
-├── scripts/start_dashboard.sh      # Dashboard startup script
-├── scripts/start_sre_agent.sh      # SRE agent startup script
-├── scripts/start_streaming.sh      # Streaming startup script
-└── README.md                       # This file
-```
-
 ## 📋 Prerequisites
 
 - **Python 3.8+**
@@ -155,25 +89,24 @@ Aegis---Intelligent-SRE-Agent/
 
 ```bash
 git clone <repository-url>
-cd Aegis---Intelligent-SRE-Agent
+cd sre-kafka-streaming
 ```
 
 ### 2. Install Dependencies
 
 ```bash
 # Install Python dependencies
-pip install -r config/requirements.txt
-pip install -r config/requirements-dashboard.txt
-pip install -r config/requirements-streaming.txt
+pip install -r requirements.txt
+pip install -r requirements-dashboard.txt
 
 # Or use the automated installer
-chmod +x scripts/install.sh
-./scripts/install.sh
+chmod +x install.sh
+./install.sh
 ```
 
 ### 3. Configure API Keys
 
-Create a `orchestration/config.py` file with your API credentials:
+Create a `config.py` file with your API credentials:
 
 ```python
 # OpenAI Configuration
@@ -199,20 +132,7 @@ SENDGRID_CONFIG = {
 }
 ```
 
-### 4. Generate Synthetic Data and Train Models
-
-```bash
-# Generate training data
-python orchestration/synthetic_data_generator.py --training
-
-# Generate streaming data
-python orchestration/synthetic_data_generator.py --streaming
-
-# Train ML models
-python ml_pipeline/anomaly_detector.py --train
-```
-
-### 5. Start Infrastructure
+### 4. Start Infrastructure
 
 ```bash
 # Start Kafka, Zookeeper, Redis, and PostgreSQL
@@ -222,18 +142,18 @@ docker-compose up -d
 sleep 30
 ```
 
-### 6. Start the SRE Dashboard
+### 5. Start the SRE Dashboard
 
 ```bash
 # Start the dashboard server
-python3 orchestration/dashboard_server_simple.py
+python3 dashboard_server_simple.py
 
 # Or use the automated startup script
-chmod +x scripts/start_dashboard.sh
-./scripts/start_dashboard.sh
+chmod +x start_dashboard.sh
+./start_dashboard.sh
 ```
 
-### 7. Access the Dashboard
+### 6. Access the Dashboard
 
 Open your browser and navigate to:
 ```
@@ -295,32 +215,6 @@ The dashboard provides several key sections:
 - Observe escalation to Critical Anomaly Reasoning Agent
 - Watch email report generation and phone paging
 
-### Streaming Integration
-
-#### Basic Streaming
-
-```bash
-# Start Kafka infrastructure
-./scripts/start_streaming.sh start
-
-# Stream your application logs
-python orchestration/stream_logs_direct.py
-```
-
-#### High-Volume Streaming
-
-```bash
-# Stream at higher rates using the integration service
-python orchestration/streaming_integration.py --mode normal --rate 10 --duration 60 --kafka-servers 127.0.0.1:9093
-```
-
-#### Burst Mode (Simulate High Load)
-
-```bash
-# Stream in bursts to simulate traffic spikes
-python orchestration/streaming_integration.py --mode burst --rate 20 --duration 30 --kafka-servers 127.0.0.1:9093
-```
-
 ## 🔧 Configuration
 
 ### Environment Variables
@@ -363,20 +257,20 @@ ML_CONFIG = {
 ### Run Complete System Test
 
 ```bash
-python3 tests/test_complete_system.py
+python3 test_complete_system.py
 ```
 
 ### Test Individual Components
 
 ```bash
 # Test ML Orchestrator
-python3 tests/test_ml_orchestrator.py
+python3 test_ml_orchestrator.py
 
 # Test RAG Agent
-python3 tests/test_rag_agent.py
+python3 test_rag_agent.py
 
 # Test Mitigation Agent
-python3 tests/test_streaming.py
+python3 test_streaming.py
 ```
 
 ### Manual Testing via Dashboard
@@ -387,25 +281,31 @@ python3 tests/test_streaming.py
 4. **Monitor flow**: Watch the reasoning trace and agent activity
 5. **Check results**: Verify email reports and phone calls
 
-## 📊 Log Format
+## 📁 Project Structure
 
-The system works with structured JSON logs:
-
-```json
-{
-  "service": "user-service",
-  "level": "INFO",
-  "host": "user-service-1.prod.internal",
-  "message": "User login successful",
-  "metrics": {
-    "cpu_usage": 45.2,
-    "memory_usage": 52.1,
-    "error_rate": 0.002,
-    "request_latency_ms": 120,
-    "active_connections": 50
-  },
-  "anomaly": false
-}
+```
+sre-kafka-streaming/
+├── agents/                          # SRE Agent implementations
+│   ├── anomaly_detector_agent.py    # ML-based anomaly detection
+│   ├── rag_agent.py                 # RAG knowledge retrieval
+│   ├── mitigation_agent.py          # Automated mitigation
+│   ├── advanced_llm_agent.py        # Critical issue analysis
+│   ├── report_generation_agent.py   # Email report generation
+│   └── paging_agent.py              # Twilio phone paging
+├── orchestration/                   # Orchestration components
+│   ├── validation_simulator.py      # Mitigation validation
+│   └── ml_orchestrator.py           # ML model orchestration
+├── frontend/                        # Dashboard frontend
+│   ├── index.html                   # Main dashboard
+│   ├── styles.css                   # Dashboard styling
+│   └── js/                          # JavaScript components
+├── data/                            # Sample data and logs
+├── scripts/                         # Database and setup scripts
+├── config.py                        # Configuration file
+├── dashboard_server_simple.py       # Main dashboard server
+├── requirements.txt                 # Python dependencies
+├── docker-compose.yml               # Infrastructure setup
+└── README.md                        # This file
 ```
 
 ## 🔍 Troubleshooting
@@ -449,14 +349,14 @@ echo $OPENAI_API_KEY
 ls -la ml_pipeline/saved_models/
 
 # Test ML orchestrator
-python3 tests/test_ml_orchestrator.py
+python3 test_ml_orchestrator.py
 ```
 
 ### Debug Commands
 
 ```bash
 # View all logs
-tail -f logs/dashboard.log
+tail -f dashboard.log
 
 # Check running processes
 ps aux | grep python
@@ -474,14 +374,14 @@ docker-compose ps
 
 ```bash
 # Build production image
-docker build -t aegis-sre-agent .
+docker build -t sre-agent .
 
 # Run with production config
 docker run -d \
   -p 8082:8082 \
   -e OPENAI_API_KEY=$OPENAI_API_KEY \
   -e TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID \
-  aegis-sre-agent
+  sre-agent
 ```
 
 ### Kubernetes Deployment
@@ -490,27 +390,27 @@ docker run -d \
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: aegis-sre-agent
+  name: sre-agent
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: aegis-sre-agent
+      app: sre-agent
   template:
     metadata:
       labels:
-        app: aegis-sre-agent
+        app: sre-agent
     spec:
       containers:
-      - name: aegis-sre-agent
-        image: aegis-sre-agent:latest
+      - name: sre-agent
+        image: sre-agent:latest
         ports:
         - containerPort: 8082
         env:
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
-              name: aegis-secrets
+              name: sre-secrets
               key: openai-api-key
 ```
 

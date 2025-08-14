@@ -1,0 +1,499 @@
+# requirements-streaming.txt
+kafka-python==2.0.2
+redis==5.0.1
+psycopg2-binary==2.9.9
+celery==5.3.4
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
+python-dotenv==1.0.0
+requests==2.31.0
+numpy==1.24.3
+pandas==2.1.3
+
+---
+# scripts/test_kafka_connection.py
+"""
+Test Kafka connection and basic operations
+"""
+import sys
+import json
+from kafka import KafkaProducer, KafkaConsumer
+from kafka.errors import KafkaError
+import time
+
+def test_kafka_connection():
+    """Test Kafka connectivity"""
+    try:
+        # Test producer
+        print("Testing Kafka producer...")
+        producer = KafkaProducer(
+            bootstrap_servers='localhost:9092',
+            value_serializer=lambda v: json.dumps(v).encode('utf-8')
+        )
+        
+        # Send test message
+        test_message = {"test": "message", "timestamp": time.time()}
+        future = producer.send('system-logs', value=test_message)
+        result = future.get(timeout=10)
+        print(f"✓ Producer test successful: {result}")
+        producer.close()
+        
+        # Test consumer
+        print("Testing Kafka consumer...")
+        consumer = KafkaConsumer(
+            'system-logs',
+            bootstrap_servers='localhost:9092',
+            auto_offset_reset='earliest',
+            consumer_timeout_ms=5000,
+            value_deserializer=lambda m: json.loads(m.decode('utf-8'))
+        )
+        
+        # Read test message
+        message_found = False
+        for message in consumer:
+            if message.value.get("test") == "message":
+                print(f"✓ Consumer test successful: received test message")
+                message_found = True
+                break
+        
+        consumer.close()
+        
+        if message_found:
+            print("✓ Kafka connection test passed!")
+            return True
+        else:
+            print("⚠ Test message not received")
+            return False
+            
+    except Exception as e:
+        print(f"✗ Kafka connection test failed: {e}")
+        return False
+
+if __name__ == "__main__":
+    success = test_kafka_connection()
+    sys.exit(0 if success else 1)
+
+---
+# scripts/generate_streaming_data.py
+"""
+Generate synthetic streaming data for testing
+"""
+import json
+import random
+import uuid
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import List, Dict, Any
+
+# Service names for realistic logs
+SERVICES = ["api-gateway", "auth-service", "payment-service", "user-service", 
+            "notification-service", "database", "cache", "queue-processor"]
+
+# Log levels
+LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
+# Error messages for anomalies
+ERROR_MESSAGES = [
+    "Connection timeout",
+    "Database connection lost",
+    "Out of memory",
+    "Service unavailable",
+    "Rate limit exceeded",
+    "Authentication failed",
+    "Invalid request",
+    "Null pointer exception",
+    "Disk space full",
+    "Network unreachable"
+]
+
+def generate_normal_log() -> Dict[str, Any]:
+    """Generate a normal log entry"""
+    return {
+        "id": str(uuid.uuid4()),
+        "timestamp": datetime.utcnow().isoformat(),
+        "service": random.choice(SERVICES),
+        "level": random.choices(LOG_LEVELS, weights=[10, 60, 20, 8, 2])[0],
+        "cpu": random.uniform(20, 60),
+        "memory": random.uniform(30, 70),
+        "latency": random.uniform(50, 200),
+        "status_code": random.choices([200, 201, 204], weights=[80, 15, 5])[0],
+        "request_count": random.randint(100, 500),
+        "error_count": random.randint(0, 5),
+        "message": "Request processed successfully"
+    }
+
+def generate_anomaly_log() -> Dict[str, Any]:
+    """Generate an anomalous log entry"""
+    anomaly_type = random.choice(["high_cpu", "high_memory", "high_latency", "error", "cascade"])
+    
+    log = {
+        "id": str(uuid.uuid4()),
+        "timestamp": datetime.utcnow().isoformat(),
+        "service": random.choice(SERVICES),
+        "level": "INFO",
+        "cpu": random.uniform(30, 60),
+        "memory": random.uniform(40, 70),
+        "latency": random.uniform(100, 300),
+        "status_code": 200,
+        "request_count": random.randint(100, 500),
+        "error_count": random.randint(0, 10),
+        "message": "Processing request"
+    }
+    
+    # Apply anomaly pattern
+    if anomaly_type == "high_cpu":
+        log["cpu"] = random.uniform(85, 99)
+        log["level"] = "WARNING"
+        log["message"] = "High CPU usage detected"
+        
+    elif anomaly_type == "high_memory":
+        log["memory"] = random.uniform(90, 99)
+        log["level"] = "WARNING"
+        log["message"] = "Memory usage critical"
+        
+    elif anomaly_type == "high_latency":
+        log["latency"] = random.uniform(1000, 5000)
+        log["level"] = "WARNING"
+        log["status_code"] = random.choice([200, 504])
+        log["message"] = "Response time degraded"
+        
+    elif anomaly_type == "error":
+        log["level"] = "ERROR"
+        log["status_code"] = random.choice([500, 502, 503])
+        log["error_count"] = random.randint(50, 200)
+        log["message"] = random.choice(ERROR_MESSAGES)
+        
+    elif anomaly_type == "cascade":
+        # Cascading failure pattern
+        log["cpu"] = random.uniform(80, 95)
+        log["memory"] = random.uniform(85, 95)
+        log["latency"] = random.uniform(800, 2000)
+        log["level"] = "CRITICAL"
+        log["status_code"] = 503
+        log["message"] = "Multiple system failures detected"
+    
+    log["anomaly_type"] = anomaly_type
+    return log
+
+def generate_scenario(scenario_type: str, duration_minutes: int = 5) -> List[Dict[str, Any]]:
+    """Generate a specific scenario pattern"""
+    logs = []
+    
+    if scenario_type == "memory_leak":
+        # Gradual memory increase
+        base_memory = 40
+        for i in range(duration_minutes * 12):  # 5-second intervals
+            log = generate_normal_log()
+            log["memory"] = min(base_memory + (i * 1.5), 99)
+            if log["memory"] > 85:
+                log["level"] = "WARNING"
+                log["message"] = "Memory usage increasing"
+            logs.append(log)
+            
+    elif scenario_type == "traffic_spike":
+        # Sudden traffic increase
+        for i in range(duration_minutes * 12):
+            log = generate_normal_log()
+            if i > 30 and i < 50:  # Spike period
+                log["request_count"] = random.randint(2000, 5000)
+                log["latency"] = random.uniform(500, 1500)
+                log["cpu"] = random.uniform(70, 95)
+            logs.append(log)
+            
+    elif scenario_type == "cascading_failure":
+        # One service fails, affecting others
+        failed_service = random.choice(SERVICES)
+        for i in range(duration_minutes * 12):
+            log = generate_normal_log()
+            if i > 20:
+                if log["service"] == failed_service:
+                    log = generate_anomaly_log()
+                    log["service"] = failed_service
+                elif i > 30 and random.random() > 0.5:
+                    # Other services affected
+                    log["latency"] = random.uniform(400, 1000)
+                    log["error_count"] = random.randint(10, 50)
+            logs.append(log)
+    
+    return logs
+
+def generate_streaming_dataset(num_logs: int = 3000) -> Dict[str, Any]:
+    """Generate complete streaming dataset"""
+    
+    dataset = {
+        "metadata": {
+            "total_logs": num_logs,
+            "generated_at": datetime.utcnow().isoformat(),
+            "scenarios": []
+        },
+        "logs": []
+    }
+    
+    # 60% normal logs
+    normal_count = int(num_logs * 0.6)
+    for _ in range(normal_count):
+        dataset["logs"].append(generate_normal_log())
+    
+    # 25% anomalies
+    anomaly_count = int(num_logs * 0.25)
+    for _ in range(anomaly_count):
+        dataset["logs"].append(generate_anomaly_log())
+    
+    # 15% scenarios
+    remaining = num_logs - normal_count - anomaly_count
+    
+    # Add memory leak scenario
+    memory_leak = generate_scenario("memory_leak", 3)
+    dataset["logs"].extend(memory_leak[:remaining//3])
+    dataset["metadata"]["scenarios"].append({
+        "type": "memory_leak",
+        "start_index": len(dataset["logs"]) - len(memory_leak[:remaining//3]),
+        "duration": len(memory_leak[:remaining//3])
+    })
+    
+    # Add traffic spike scenario
+    traffic_spike = generate_scenario("traffic_spike", 3)
+    dataset["logs"].extend(traffic_spike[:remaining//3])
+    dataset["metadata"]["scenarios"].append({
+        "type": "traffic_spike",
+        "start_index": len(dataset["logs"]) - len(traffic_spike[:remaining//3]),
+        "duration": len(traffic_spike[:remaining//3])
+    })
+    
+    # Add cascading failure scenario
+    cascade = generate_scenario("cascading_failure", 3)
+    dataset["logs"].extend(cascade[:remaining//3])
+    dataset["metadata"]["scenarios"].append({
+        "type": "cascading_failure",
+        "start_index": len(dataset["logs"]) - len(cascade[:remaining//3]),
+        "duration": len(cascade[:remaining//3])
+    })
+    
+    # Shuffle logs to make it more realistic
+    random.shuffle(dataset["logs"])
+    
+    # Add sequence numbers
+    for i, log in enumerate(dataset["logs"]):
+        log["sequence"] = i
+    
+    return dataset
+
+def save_dataset(dataset: Dict[str, Any], filepath: str):
+    """Save dataset to file"""
+    path = Path(filepath)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    
+    with open(path, 'w') as f:
+        json.dump(dataset, f, indent=2)
+    
+    print(f"✓ Saved {len(dataset['logs'])} logs to {filepath}")
+    print(f"  - Normal logs: {sum(1 for log in dataset['logs'] if 'anomaly_type' not in log)}")
+    print(f"  - Anomalies: {sum(1 for log in dataset['logs'] if 'anomaly_type' in log)}")
+    print(f"  - Scenarios: {len(dataset['metadata']['scenarios'])}")
+
+if __name__ == "__main__":
+    # Generate streaming dataset
+    print("Generating streaming dataset...")
+    streaming_data = generate_streaming_dataset(3000)
+    save_dataset(streaming_data, "data/synthetic/streaming/stream_logs.json")
+    
+    print("\n✓ Streaming data generation complete!")
+
+---
+# scripts/run_producer.py
+"""
+Run the Kafka producer with synthetic data
+"""
+import sys
+import argparse
+from pathlib import Path
+
+# Add parent directory to path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from streaming.kafka.log_producer import LogProducer
+from streaming.kafka.kafka_config import KafkaConfig
+
+def main():
+    parser = argparse.ArgumentParser(description="Run Kafka log producer")
+    parser.add_argument("--data", default="data/synthetic/streaming/stream_logs.json",
+                      help="Path to synthetic data file")
+    parser.add_argument("--rate", type=int, default=10,
+                      help="Logs per second")
+    parser.add_argument("--scenario", choices=["normal", "spike", "gradual_increase", "random"],
+                      default="normal", help="Streaming scenario")
+    
+    args = parser.parse_args()
+    
+    # Initialize producer
+    config = KafkaConfig()
+    producer = LogProducer(config)
+    
+    if not producer.connect():
+        print("Failed to connect to Kafka")
+        return 1
+    
+    # Load data
+    logs = producer.load_synthetic_logs(args.data)
+    if not logs:
+        print("No logs to stream")
+        return 1
+    
+    # Start streaming
+    print(f"Starting to stream {len(logs)} logs at {args.rate} logs/sec")
+    print(f"Scenario: {args.scenario}")
+    print("Press Ctrl+C to stop...")
+    
+    try:
+        if args.scenario == "normal":
+            producer.stream_logs(logs, args.rate)
+        else:
+            producer.stream_scenario(logs, args.scenario)
+    except KeyboardInterrupt:
+        print("\nStopping producer...")
+    finally:
+        producer.close()
+        print(f"Final metrics: {producer.get_metrics()}")
+    
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
+
+---
+# scripts/run_consumer.py
+"""
+Run the Kafka consumer with processing
+"""
+import sys
+import json
+from pathlib import Path
+
+# Add parent directory to path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from streaming.kafka.log_consumer import LogConsumer
+from streaming.kafka.kafka_config import KafkaConfig
+
+def process_callback(results):
+    """Callback for processing consumed logs"""
+    log = results["log"]
+    
+    # Check for anomalies in processor results
+    for result in results["processor_results"]:
+        if result.get("result", {}).get("is_anomaly"):
+            print(f"🚨 Anomaly detected: {log.get('service')} - Score: {result['result']['anomaly_score']:.2f}")
+        elif result.get("result", {}).get("has_violations"):
+            violations = result["result"]["violations"]
+            print(f"⚠️  Threshold violation: {log.get('service')} - {violations}")
+
+def main():
+    # Initialize consumer
+    config = KafkaConfig()
+    consumer = LogConsumer(config)
+    
+    if not consumer.connect():
+        print("Failed to connect to Kafka")
+        return 1
+    
+    # Add simple processors for demo
+    def simple_anomaly_detector(log):
+        """Simple anomaly detection based on thresholds"""
+        score = 0
+        if log.get("cpu", 0) > 80:
+            score += 0.3
+        if log.get("memory", 0) > 85:
+            score += 0.3
+        if log.get("latency", 0) > 1000:
+            score += 0.4
+        
+        return {
+            "anomaly_score": score,
+            "is_anomaly": score > 0.5
+        }
+    
+    consumer.add_processor(simple_anomaly_detector, "anomaly_detector")
+    
+    print("Starting consumer...")
+    print("Waiting for messages...")
+    print("Press Ctrl+C to stop")
+    
+    try:
+        consumer.start_consuming(process_callback)
+    except KeyboardInterrupt:
+        print("\nStopping consumer...")
+    finally:
+        print(f"Final metrics: {consumer.get_metrics()}")
+    
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
+
+---
+# scripts/init_db.sql
+-- PostgreSQL initialization script
+-- Create tables for SRE Agent
+
+-- Log history table
+CREATE TABLE IF NOT EXISTS log_history (
+    id SERIAL PRIMARY KEY,
+    log_id VARCHAR(255) UNIQUE,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    service VARCHAR(100),
+    level VARCHAR(20),
+    cpu FLOAT,
+    memory FLOAT,
+    latency FLOAT,
+    anomaly_score FLOAT,
+    is_anomaly BOOLEAN DEFAULT FALSE,
+    raw_log JSONB
+);
+
+-- Mitigation actions table
+CREATE TABLE IF NOT EXISTS mitigation_actions (
+    id SERIAL PRIMARY KEY,
+    action_id VARCHAR(255) UNIQUE,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    log_id VARCHAR(255),
+    action_type VARCHAR(50),
+    service VARCHAR(100),
+    severity VARCHAR(20),
+    status VARCHAR(20),
+    details JSONB,
+    FOREIGN KEY (log_id) REFERENCES log_history(log_id)
+);
+
+-- Metrics table
+CREATE TABLE IF NOT EXISTS system_metrics (
+    id SERIAL PRIMARY KEY,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    metric_name VARCHAR(100),
+    metric_value FLOAT,
+    service VARCHAR(100),
+    tags JSONB
+);
+
+-- Create indexes
+CREATE INDEX idx_log_history_timestamp ON log_history(timestamp);
+CREATE INDEX idx_log_history_service ON log_history(service);
+CREATE INDEX idx_log_history_anomaly ON log_history(is_anomaly);
+CREATE INDEX idx_mitigation_timestamp ON mitigation_actions(timestamp);
+CREATE INDEX idx_metrics_timestamp ON system_metrics(timestamp);
+
+-- Create a view for recent anomalies
+CREATE OR REPLACE VIEW recent_anomalies AS
+SELECT 
+    lh.log_id,
+    lh.timestamp,
+    lh.service,
+    lh.level,
+    lh.anomaly_score,
+    ma.action_type,
+    ma.status as mitigation_status
+FROM log_history lh
+LEFT JOIN mitigation_actions ma ON lh.log_id = ma.log_id
+WHERE lh.is_anomaly = TRUE
+  AND lh.timestamp > NOW() - INTERVAL '1 hour'
+ORDER BY lh.timestamp DESC;

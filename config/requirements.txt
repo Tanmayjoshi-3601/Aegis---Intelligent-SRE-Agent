@@ -1,0 +1,91 @@
+# Core dependencies
+numpy>=1.21.0
+pandas>=1.3.0
+scikit-learn>=1.0.0
+matplotlib>=3.4.0
+seaborn>=0.11.0
+
+# Web framework and API
+flask>=2.0.0
+flask-cors>=3.0.10
+requests>=2.25.0
+
+# Kafka streaming
+kafka-python>=2.0.0
+confluent-kafka>=1.7.0
+
+# Database
+sqlite3
+psycopg2-binary>=2.9.0
+redis>=4.0.0
+
+# AI and ML
+openai>=0.27.0
+langchain>=0.0.200
+chromadb>=0.3.0
+sentence-transformers>=2.2.0
+
+# Communication
+twilio>=7.16.0
+sendgrid>=6.9.0
+
+# Utilities
+python-dotenv>=0.19.0
+click>=8.0.0
+tqdm>=4.62.0
+pyyaml>=6.0
+jsonschema>=4.0.0
+
+# Monitoring and logging
+prometheus-client>=0.12.0
+structlog>=21.5.0
+
+# Testing
+pytest>=6.2.0
+pytest-cov>=3.0.0
+pytest-mock>=3.6.0
+
+# Development
+black>=21.0.0
+flake8>=4.0.0
+mypy>=0.910
+
+# Jupyter notebooks
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Additional ML libraries
+xgboost>=1.5.0
+lightgbm>=3.3.0
+tensorflow>=2.8.0
+torch>=1.10.0
+
+# Time series analysis
+statsmodels>=0.13.0
+prophet>=1.1.0
+
+# Data processing
+polars>=0.15.0
+vaex>=4.13.0
+
+# Visualization
+plotly>=5.0.0
+bokeh>=2.4.0
+dash>=2.0.0
+
+# Async support
+asyncio
+aiohttp>=3.8.0
+websockets>=10.0
+
+# Configuration management
+pydantic>=1.9.0
+hydra-core>=1.2.0
+
+# Security
+cryptography>=3.4.0
+passlib>=1.7.0
+
+# Performance monitoring
+memory-profiler>=0.60.0
+line-profiler>=3.5.0

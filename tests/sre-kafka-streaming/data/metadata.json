@@ -1,0 +1,161 @@
+{
+  "total_logs": 2728,
+  "normal_logs": 1245,
+  "anomaly_logs": 1483,
+  "scenarios": [
+    {
+      "type": "cascading_failure",
+      "id": "cascade_0f1e2d45",
+      "log_count": 30,
+      "start_time": "2025-08-12T17:09:17.944835",
+      "end_time": "2025-08-12T17:28:17.944835"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_8fad1691",
+      "log_count": 34,
+      "start_time": "2025-08-12T17:39:17.944835",
+      "end_time": "2025-08-12T17:58:17.944835"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_9076bc34",
+      "log_count": 26,
+      "start_time": "2025-08-12T18:09:17.944835",
+      "end_time": "2025-08-12T18:28:17.944835"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_e54ead1c",
+      "log_count": 33,
+      "start_time": "2025-08-12T18:39:17.944835",
+      "end_time": "2025-08-12T18:58:17.944835"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_6349432a",
+      "log_count": 30,
+      "start_time": "2025-08-12T19:09:17.944835",
+      "end_time": "2025-08-12T19:28:17.944835"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_feed77a4",
+      "log_count": 31,
+      "start_time": "2025-08-12T19:39:17.944835",
+      "end_time": "2025-08-12T19:58:17.944835"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_8d7f05e5",
+      "log_count": 33,
+      "start_time": "2025-08-12T20:09:17.944835",
+      "end_time": "2025-08-12T20:28:17.944835"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_6f879f2e",
+      "log_count": 33,
+      "start_time": "2025-08-12T20:39:17.944835",
+      "end_time": "2025-08-12T20:58:17.944835"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_a35bb8b9",
+      "log_count": 32,
+      "start_time": "2025-08-12T21:09:17.944835",
+      "end_time": "2025-08-12T21:28:17.944835"
+    },
+    {
+      "type": "cascading_failure",
+      "id": "cascade_18898cd0",
+      "log_count": 27,
+      "start_time": "2025-08-12T21:39:17.944835",
+      "end_time": "2025-08-12T21:58:17.944835"
+    },
+    {
+      "type": "memory_leak",
+      "id": "memleak_47b6790c",
+      "log_count": 31,
+      "start_time": "2025-08-12T22:09:17.944835",
+      "end_time": "2025-08-12T23:10:17.944835"
+    },
+    {
+      "type": "memory_leak",
+      "id": "memleak_7cbc3808",
+      "log_count": 31,
+      "start_time": "2025-08-12T23:19:17.944835",
+      "end_time": "2025-08-13T00:20:17.944835"
+    },
+    {
+      "type": "memory_leak",
+      "id": "memleak_875acf9e",
+      "log_count": 31,
+      "start_time": "2025-08-13T00:29:17.944835",
+      "end_time": "2025-08-13T01:30:17.944835"
+    },
+    {
+      "type": "memory_leak",
+      "id": "memleak_57234424",
+      "log_count": 31,
+      "start_time": "2025-08-13T01:39:17.944835",
+      "end_time": "2025-08-13T02:40:17.944835"
+    },
+    {
+      "type": "memory_leak",
+      "id": "memleak_c9ad8dbc",
+      "log_count": 31,
+      "start_time": "2025-08-13T02:49:17.944835",
+      "end_time": "2025-08-13T03:50:17.944835"
+    },
+    {
+      "type": "ddos_attack",
+      "id": "ddos_cd6f1948",
+      "log_count": 252,
+      "start_time": "2025-08-13T03:59:17.944835",
+      "end_time": "2025-08-13T04:13:17.944835"
+    },
+    {
+      "type": "ddos_attack",
+      "id": "ddos_3af6fb06",
+      "log_count": 250,
+      "start_time": "2025-08-13T04:19:17.944835",
+      "end_time": "2025-08-13T04:33:17.944835"
+    },
+    {
+      "type": "ddos_attack",
+      "id": "ddos_708ebee6",
+      "log_count": 262,
+      "start_time": "2025-08-13T04:39:17.944835",
+      "end_time": "2025-08-13T04:53:17.944835"
+    }
+  ],
+  "services": [
+    "cache-service",
+    "database-primary",
+    "api-gateway",
+    "user-service",
+    "auth-service",
+    "database-replica",
+    "notification-service",
+    "inventory-service",
+    "payment-service",
+    "analytics-service"
+  ],
+  "anomaly_types": [
+    "high_cpu",
+    "high_memory",
+    "connection_pool",
+    "high_error_rate",
+    "high_latency"
+  ],
+  "time_range": {
+    "start": "2025-08-12T17:09:17.944835",
+    "end": "2025-08-14T05:58:17.944835"
+  },
+  "streaming_info": {
+    "recommended_rate": "10 logs/second",
+    "total_duration_minutes": 5,
+    "burst_scenarios": 13
+  }
+}
