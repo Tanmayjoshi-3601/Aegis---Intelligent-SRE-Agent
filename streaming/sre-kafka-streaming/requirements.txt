@@ -1,8 +1,0 @@
-kafka-python>=2.0.2
-requests>=2.31.0
-pandas
-joblib
-scikit-learn
-scipy
-twilio>=8.0.0
-sendgrid>=6.0.0 
