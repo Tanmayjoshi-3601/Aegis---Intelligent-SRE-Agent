@@ -73,6 +73,46 @@ Aegis is an intelligent SRE agent that provides end-to-end automation for detect
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
+## 🔐 Environment Variables
+
+This project uses environment variables to manage sensitive configuration like API keys and credentials. 
+
+### Setup Instructions
+
+1. **Copy the example environment file:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Edit the `.env` file with your actual credentials:**
+   ```bash
+   # OpenAI API Configuration
+   OPENAI_API_KEY=your-actual-openai-api-key
+   
+   # Twilio Configuration (for phone paging)
+   TWILIO_ACCOUNT_SID=your-twilio-account-sid
+   TWILIO_AUTH_TOKEN=your-twilio-auth-token
+   TWILIO_FROM_NUMBER=your-twilio-from-number
+   SRE_ONCALL_PHONE=your-oncall-phone-number
+   
+   # SendGrid Configuration (for email reports)
+   SENDGRID_API_KEY=your-sendgrid-api-key
+   SRE_SENDER_EMAIL=your-sender-email
+   SRE_RECIPIENT_EMAIL=your-recipient-email
+   
+   # Database Configuration
+   POSTGRES_PASSWORD=your-postgres-password
+   ```
+
+3. **Important:** The `.env` file is ignored by git to keep your secrets safe. Never commit your actual API keys!
+
+### Required Services
+
+- **OpenAI API**: For LLM-powered analysis and recommendations
+- **Twilio**: For phone call notifications (optional)
+- **SendGrid**: For email report delivery (optional)
+- **PostgreSQL**: For data persistence (optional)
+
 ## 📁 Project Structure
 
 ```
