@@ -67,7 +67,7 @@ class RAGAgent:
         }
         
         # OpenAI API Configuration
-        self.openai_api_key = "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"
+        self.openai_api_key = os.getenv('OPENAI_API_KEY', '')
         self.openai_base_url = "https://api.openai.com/v1"
         self.model = "gpt-4"
         self.max_tokens = 1000

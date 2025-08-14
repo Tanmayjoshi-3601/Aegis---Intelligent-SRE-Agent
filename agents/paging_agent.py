@@ -15,9 +15,9 @@ class PagingAgent:
     def __init__(self, twilio_config=None):
         """Initialize the Paging Agent"""
         self.twilio_config = twilio_config or {
-            'account_sid': 'ACd8962b295f0a17e1636ea572cc4f8769',
-            'auth_token': 'a572e1b18df0419b273e32844d61f367',
-            'from_number': '+13513005564',
+            'account_sid': os.getenv('TWILIO_ACCOUNT_SID', ''),
+            'auth_token': os.getenv('TWILIO_AUTH_TOKEN', ''),
+            'from_number': os.getenv('TWILIO_FROM_NUMBER', ''),
             'to_number': os.getenv('SRE_ONCALL_PHONE', '+18573357165'),
             'enabled': True
         }

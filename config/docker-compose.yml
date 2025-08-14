@@ -84,7 +84,7 @@ services:
     environment:
       POSTGRES_DB: sre_agent
       POSTGRES_USER: sre_user
-      POSTGRES_PASSWORD: sre_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5433:5432"
     volumes:

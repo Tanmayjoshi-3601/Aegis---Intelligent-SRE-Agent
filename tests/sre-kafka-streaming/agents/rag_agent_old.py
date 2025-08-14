@@ -66,7 +66,7 @@ class RAGAgent:
         }
         
         # OpenAI API Configuration
-        self.openai_api_key = "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"
+        self.openai_api_key = os.getenv('OPENAI_API_KEY', '')
         self.openai_base_url = "https://api.openai.com/v1"
         self.model = "gpt-4"
         self.max_tokens = 1000
@@ -227,7 +227,6 @@ class RAGAgent:
                     }
                 ],
                 "success_rate": 0.70
-            },
             }
         }
         
@@ -386,3 +385,84 @@ class RAGAgent:
         
         # Check for critical errors
         if level in ['CRITICAL', 'ERROR']:
+            return 'critical_error'
+        
+        # Default fallback
+        return 'unknown_error'
+    
+    def _retrieve_playbook(self, error_type: str) -> Optional[Dict]:
+        """Retrieve the appropriate playbook for the error type"""
+        return self.mitigation_playbooks.get(error_type)
+    
+    def _generate_context(self, log_entry, anomaly_decision, playbook) -> str:
+        """Generate context for LLM analysis"""
+        return f"""
+Error Type: {playbook['description']}
+Log Level: {log_entry.level}
+Service: {log_entry.service}
+Message: {log_entry.message}
+Metrics: {log_entry.metrics}
+Anomaly Decision: {anomaly_decision}
+Available Actions: {[action.description for action in playbook['actions']]}
+"""
+    
+    async def _get_llm_recommendations(self, context: str) -> Dict:
+        """Get LLM recommendations for the error"""
+        if not self.openai_api_key:
+            return {'recommendation': 'No API key available', 'confidence': 0.0}
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.openai_api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            data = {
+                "model": self.model,
+                "messages": [
+                    {"role": "system", "content": "You are an SRE expert. Analyze the error and recommend the best mitigation actions."},
+                    {"role": "user", "content": context}
+                ],
+                "max_tokens": self.max_tokens,
+                "temperature": 0.1
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f"{self.openai_base_url}/chat/completions", headers=headers, json=data) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        content = result['choices'][0]['message']['content']
+                        return {'recommendation': content, 'confidence': 0.8}
+                    else:
+                        return {'recommendation': 'API call failed', 'confidence': 0.0}
+        except Exception as e:
+            logger.error(f"LLM API error: {e}")
+            return {'recommendation': f'Error: {str(e)}', 'confidence': 0.0}
+    
+    def _select_actions(self, playbook: Dict, llm_recommendations: Dict) -> List[MitigationAction]:
+        """Select appropriate actions based on LLM recommendations"""
+        # For now, return all actions from the playbook
+        # In a real implementation, this would parse LLM recommendations
+        return playbook['actions']
+    
+    async def _execute_actions(self, actions: List[MitigationAction]) -> List[Dict]:
+        """Execute mitigation actions"""
+        results = []
+        for action in actions:
+            result = {
+                'action': action.description,
+                'status': 'simulated',
+                'duration': action.expected_duration,
+                'risk_level': action.risk_level
+            }
+            results.append(result)
+            logger.info(f"Simulated execution: {action.description}")
+        return results
+    
+    def _needs_escalation(self, execution_results: List[Dict], llm_recommendations: Dict) -> bool:
+        """Determine if escalation is needed"""
+        # Check if any actions failed or if confidence is low
+        failed_actions = [r for r in execution_results if r.get('status') == 'failed']
+        low_confidence = llm_recommendations.get('confidence', 0) < 0.5
+        
+        return len(failed_actions) > 0 or low_confidence

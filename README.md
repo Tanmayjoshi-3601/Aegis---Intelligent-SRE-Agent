@@ -545,4 +545,3 @@ For support and questions:
 
 ---
 
-**Made with ❤️ for SRE teams worldwide** 
